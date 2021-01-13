@@ -21,7 +21,6 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     this.newHandler = {};
 
     this.completed = false;
-
     this.params = InteractiveBook.sanitizeConfig(config);
     this.l10n = this.params.l10n;
     this.params.behaviour = this.params.behaviour || {};
@@ -685,8 +684,8 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     this.setSectionStatusByID = (sectionUUID, chapterId) => {
       this.chapters[chapterId].sections.forEach((section, index) => {
         const sectionInstance = section.instance;
-
-        if (sectionInstance.subContentId === sectionUUID && !section.taskDone) {
+        const dealQuestionnaire = sectionInstance.libraryInfo.machineName === 'H5P.Questionnaire';
+        if ( sectionInstance.subContentId === sectionUUID && !section.taskDone && !dealQuestionnaire) {
           // Check if instance has given an answer
           section.taskDone = sectionInstance.getAnswerGiven ? sectionInstance.getAnswerGiven() : true;
                     
@@ -695,7 +694,24 @@ export default class InteractiveBook extends H5P.EventDispatcher {
             this.chapters[chapterId].tasksLeft -= 1;
           }
           this.updateChapterProgress(chapterId);
+        } else if (sectionInstance.subContentId === sectionUUID && !section.taskDone && dealQuestionnaire) {
+          // this block set progress for Questionnaire when it is submitted/finished.
+          const instanceState = section.instance.getCurrentState();
+          if (instanceState.hasOwnProperty('finished') && instanceState.finished === true) {
+            section.taskDone = true;
+            // iteratre over "Questionnaire Set" to update the progress
+            section.instance.state.questionnaireElements.forEach(questionnaireElement => {
+              if (questionnaireElement.answered === true) {
+                this.sideBar.setSectionMarker(chapterId, index);
+                if (section.taskDone) {
+                  this.chapters[chapterId].tasksLeft -= 1;
+                }
+                this.updateChapterProgress(chapterId);
+              }
+            });
+          }
         }
+        
       });
     };
 
@@ -912,7 +928,15 @@ export default class InteractiveBook extends H5P.EventDispatcher {
 
     config.chapters = config.chapters
       .map(chapter => {
-        chapter.params.content = chapter.params.content.filter(content => content.content);
+        if (chapter.hasOwnProperty('chapter')) {
+          let chapterObj = {...chapter, ...chapter.chapter};
+          chapter = chapterObj;
+          chapter.params.content = chapter.params.content.filter(content => content.content);
+        } else {
+          chapter.params.content = chapter.params.content.filter(content => content.content);
+        }
+        // original code to set chapter params
+        //chapter.params.content = chapter.params.content.filter(content => content.content);
         return chapter;
       })
       .filter(chapter => chapter.params.content && chapter.params.content.length > 0);

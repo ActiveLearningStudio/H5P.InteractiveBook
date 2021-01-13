@@ -236,22 +236,31 @@ class SideBar extends H5P.EventDispatcher {
       const sections = this.findSectionsInChapter(columnsData[i]);
       const chapterTitle = columnsData[i].metadata.title;
       const id = `h5p-interactive-book-chapter-${columnsData[i].subContentId}`;
+      let lockPage = null;
+      if (columnsData[i].hasOwnProperty('lockPage')) {
+        lockPage = columnsData[i].lockPage === true ? true : false;
+      }
+      
       chapters.push({
         sections: sections,
         title: chapterTitle,
         id: id,
         isSummary: false,
+        lockPage: lockPage
       });
     }
-
-    if ( this.parent.hasSummary()) {
+    
+    if ( this.parent.hasSummary() ) {
+      let lockedPage = chapters.find(chapter => chapter.hasOwnProperty('lockPage') && chapter.lockPage === true ? true : false);
       chapters.push({
         sections: [],
         title: this.l10n.summaryHeader,
         id: `h5p-interactive-book-chapter-summary`,
         isSummary: true,
+        lockPage: lockedPage !== undefined && lockedPage.lockPage === true ? true : false,
       });
     }
+    
     return chapters;
   }
 
@@ -387,6 +396,9 @@ class SideBar extends H5P.EventDispatcher {
   getNodesFromChapter(chapter, chapterId) {
     const chapterNode = document.createElement('li');
     chapterNode.classList.add('h5p-interactive-book-navigation-chapter');
+    if (chapter.lockPage === true && chapterId > 0) {
+      chapterNode.classList.add('lockPage');
+    }
 
     if ( chapter.isSummary) {
       chapterNode.classList.add('h5p-interactive-book-navigation-summary-button');
@@ -413,6 +425,7 @@ class SideBar extends H5P.EventDispatcher {
     }
 
     const chapterNodeTitle = document.createElement('button');
+    //chapterNodeTitle.setAttribute('disabled', 'disabled'); todo disable with lockPage check
     chapterNodeTitle.setAttribute('tabindex', chapterId === 0 ? '0' : '-1');
     chapterNodeTitle.classList.add('h5p-interactive-book-navigation-chapter-button');
     if (this.parent.activeChapter !== chapterId) {

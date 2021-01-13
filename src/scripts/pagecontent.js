@@ -242,6 +242,17 @@ class PageContent extends H5P.EventDispatcher {
             chapter.tasksLeft += 1;
           }
         }
+
+        const dealQuestionnaire = !section.isTask && section.instance.libraryInfo.machineName === 'H5P.Questionnaire';
+        if (dealQuestionnaire) {
+          section.isTask = true;
+          section.content.params.questionnaireElements.forEach(el => {
+            if (this.behaviour.progressIndicators) {
+              section.taskDone = false;
+              chapter.tasksLeft += 1;
+            }
+          });
+        }
       });
 
       chapter.maxTasks = chapter.tasksLeft;
