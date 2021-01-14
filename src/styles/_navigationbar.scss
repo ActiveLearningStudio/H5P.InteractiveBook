@@ -13,6 +13,11 @@
   display: flex;
   flex-direction: column;
 
+  .lock-page-navigation > button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
   >a {
     font-weight: bold;
   }

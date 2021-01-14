@@ -15,7 +15,7 @@ class Summary extends H5P.EventDispatcher {
     this.behaviour = config.behaviour;
     this.l10n = config.l10n;
     this.chapters = chapters || [];
-
+    this.chaptersWithConfig = this.setChaptersConfig(config.chapters);
     this.subContentId = 'summary';
     this.wrapper = null;
     this.summaryMenuButton = this.createSummaryButton();
@@ -36,6 +36,44 @@ class Summary extends H5P.EventDispatcher {
         }
       }
     });
+  }
+
+  /**
+   * set chapters config.
+   *
+   * @param {object[]} columnsData Columns data.
+   * @return {object[]} Chapters data.
+   */
+  setChaptersConfig(columnsData) {
+    const chapters = [];
+    for (let i = 0; i < columnsData.length; i++) {
+      
+      const chapterTitle = columnsData[i].metadata.title;
+      const id = `h5p-interactive-book-chapter-${columnsData[i].subContentId}`;
+      let lockPage = null;
+      if (columnsData[i].hasOwnProperty('lockPage')) {
+        lockPage = columnsData[i].lockPage === true ? true : false;
+      }
+      
+      chapters.push({
+        title: chapterTitle,
+        id: id,
+        isSummary: false,
+        lockPage: lockPage
+      });
+    }
+    
+    if ( this.parent.hasSummary() ) {
+      let lockedPage = chapters.find(chapter => chapter.hasOwnProperty('lockPage') && chapter.lockPage === true ? true : false);
+      chapters.push({
+        title: this.l10n.summaryHeader,
+        id: `h5p-interactive-book-chapter-summary`,
+        isSummary: true,
+        lockPage: lockedPage !== undefined && lockedPage.lockPage === true ? true : false,
+      });
+    }
+    
+    return chapters;
   }
 
   /**
@@ -224,7 +262,11 @@ class Summary extends H5P.EventDispatcher {
 
     box.appendChild(header);
     box.appendChild(progressBigText);
-    box.appendChild(progressSmallText);
+
+    if (title.toLowerCase() !== 'total score') {
+      box.appendChild(progressSmallText);
+    }
+    
 
     const container = document.createElement("div");
     container.appendChild(box);
@@ -326,7 +368,11 @@ class Summary extends H5P.EventDispatcher {
       };
       wrapper.appendChild(submitButton);
     }
-    wrapper.appendChild(this.createRestartButton());
+    
+    let lockedPage = this.chaptersWithConfig.find(chapter => chapter.hasOwnProperty('lockPage') && chapter.lockPage === true ? true : false);
+    if (lockedPage === undefined) {
+      wrapper.appendChild(this.createRestartButton());
+    }
     wrapper.appendChild(this.createSubmittedConfirmation());
 
     this.wrapper.appendChild(wrapper);
@@ -360,7 +406,10 @@ class Summary extends H5P.EventDispatcher {
     text.innerHTML = this.l10n.yourAnswersAreSubmittedForReview;
     submittedContainer.appendChild(text);
 
-    submittedContainer.appendChild(this.createRestartButton());
+    let lockedPage = this.chaptersWithConfig.find(chapter => chapter.hasOwnProperty('lockPage') && chapter.lockPage === true ? true : false);
+    if (lockedPage === undefined) {
+      submittedContainer.appendChild(this.createRestartButton());
+    }
 
     return submittedContainer;
   }

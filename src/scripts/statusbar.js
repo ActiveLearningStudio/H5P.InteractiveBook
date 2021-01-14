@@ -19,6 +19,9 @@ class StatusBar extends H5P.EventDispatcher {
     this.totalChapters = totalChapters;
     this.arrows = this.addArrows();
 
+    let lockedPage = this.parent.params.chapters.find(chapter => chapter.hasOwnProperty('lockPage') && chapter.lockPage === true ? true : false);
+    this.hasLockedPage = lockedPage === undefined ? false : true;
+
     /**
      * Top row initializer
      */
@@ -33,8 +36,11 @@ class StatusBar extends H5P.EventDispatcher {
     wrapperInfo.appendChild(this.createToTopButton());
     wrapperInfo.appendChild(this.chapterTitle.wrapper);
     wrapperInfo.appendChild(this.progressIndicator.wrapper);
-    wrapperInfo.appendChild(this.arrows.buttonWrapperPrevious);
-    wrapperInfo.appendChild(this.arrows.buttonWrapperNext);
+    
+    if (!this.hasLockedPage) {
+      wrapperInfo.appendChild(this.arrows.buttonWrapperPrevious);
+      wrapperInfo.appendChild(this.arrows.buttonWrapperNext);
+    }    
 
     if (this.params.displayFullScreenButton && H5P.fullscreenSupported) {
       wrapperInfo.appendChild(this.createFullScreenButton());

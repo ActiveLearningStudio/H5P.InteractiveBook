@@ -509,7 +509,29 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       }
 
       this.sideBar.updateChapterProgressIndicator(chapterId, status);
+      let lockedPage = this.params.chapters.find(chapter => chapter.hasOwnProperty('lockPage') && chapter.lockPage === true ? true : false);
+      
+      if (lockedPage !== undefined) {
+        this.sequentialLogic(chapterId, status);
+      }
     };
+
+    /**
+     * perform sequential logic on chapter progress.
+     *
+     * @param {number} chapterId Chapter Id.
+     * @param {string} status Status.
+     */
+    this.sequentialLogic = (chapterId, status) => {
+      let chapterLastIndex = this.params.chapters.length - 1;
+      if (chapterId === chapterLastIndex && status === 'DONE') {
+        //if it is a summary
+        this.sideBar.updateSequentialLogicIndicator((chapterId + 1), status, true);
+      }else if (chapterId > -1 && chapterId < chapterLastIndex && status === 'DONE') {
+        // unlock next chapter / page after current 
+        this.sideBar.updateSequentialLogicIndicator((chapterId + 1), status);
+      }
+    }
 
     /**
      * Get id of chapter.

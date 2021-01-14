@@ -371,6 +371,34 @@ class SideBar extends H5P.EventDispatcher {
   }
 
   /**
+   * Update the sequential logic indicator on a specific chapter.
+   *
+   * @param {number} chapterId The chapter that should be updated.
+   * @param {string} status Status.
+   */
+  updateSequentialLogicIndicator(chapterId, status, handleSummary = false) {
+    
+    let completedChapters = this.chapterNodes.filter(node => node.querySelector('.icon-chapter-done'));
+    let numberOfChapters = this.chapterNodes.length - 1;
+    
+    // if all chapters are completed
+    if (status === 'DONE' && completedChapters.length === numberOfChapters) {
+      chapterId = this.chapterNodes.length - 1; // set chapterId for Summary
+      const chapterButton = this.chapterNodes[chapterId].querySelector('button');
+      chapterButton.removeAttribute('disabled');
+      this.chapterNodes[chapterId].classList.remove('lock-page-navigation');
+      return;
+    }
+
+    const chapterButton = this.chapterNodes[chapterId].querySelector('button');
+    if (status === 'DONE' && !handleSummary) {
+      chapterButton.removeAttribute('disabled');
+      this.chapterNodes[chapterId].classList.remove('lock-page-navigation');
+    }
+    
+  }
+
+  /**
    * Set section marker.
    *
    * @param {number} chapterId Chapter Id.
@@ -397,7 +425,7 @@ class SideBar extends H5P.EventDispatcher {
     const chapterNode = document.createElement('li');
     chapterNode.classList.add('h5p-interactive-book-navigation-chapter');
     if (chapter.lockPage === true && chapterId > 0) {
-      chapterNode.classList.add('lockPage');
+      chapterNode.classList.add('lock-page-navigation');
     }
 
     if ( chapter.isSummary) {
@@ -406,6 +434,9 @@ class SideBar extends H5P.EventDispatcher {
       const summaryButton = summary.instance.summaryMenuButton;
       summaryButton.classList.add('h5p-interactive-book-navigation-chapter-button');
       chapterNode.appendChild(summaryButton);
+      if (chapterId > 0 && chapter.lockPage === true) {
+        summaryButton.setAttribute('disabled', 'disabled');
+      }
       return chapterNode;
     }
 
@@ -425,7 +456,9 @@ class SideBar extends H5P.EventDispatcher {
     }
 
     const chapterNodeTitle = document.createElement('button');
-    //chapterNodeTitle.setAttribute('disabled', 'disabled'); todo disable with lockPage check
+    if (chapterId > 0 && chapter.lockPage === true) {
+      chapterNodeTitle.setAttribute('disabled', 'disabled');
+    }
     chapterNodeTitle.setAttribute('tabindex', chapterId === 0 ? '0' : '-1');
     chapterNodeTitle.classList.add('h5p-interactive-book-navigation-chapter-button');
     if (this.parent.activeChapter !== chapterId) {
