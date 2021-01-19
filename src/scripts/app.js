@@ -719,7 +719,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         } else if (sectionInstance.subContentId === sectionUUID && !section.taskDone && dealQuestionnaire) {
           // this block set progress for Questionnaire when it is submitted/finished.
           const instanceState = section.instance.getCurrentState();
-          if (instanceState.hasOwnProperty('finished') && instanceState.finished === true) {
+          if (instanceState.progress === (section.instance.state.questionnaireElements.length - 1)) {
             section.taskDone = true;
             // iteratre over "Questionnaire Set" to update the progress
             section.instance.state.questionnaireElements.forEach(questionnaireElement => {
