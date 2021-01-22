@@ -363,9 +363,18 @@ class Summary extends H5P.EventDispatcher {
       submitButton.classList.add('h5p-interactive-book-summary-submit');
       submitButton.onclick = () => {
         this.trigger('submitted');
-        this.parent.triggerXAPIScored(this.parent.getScore(), this.parent.getMaxScore(), 'completed');
-        this.triggerSkipped();
-        this.triggerSkippedQuestioneer();
+        
+      
+        var max_score = this.parent.getMaxScore();
+        var raw_score = this.parent.getScore();
+
+        if(max_score === raw_score) {
+          max_score += 1;
+        }
+
+        this.parent.triggerXAPIScored(raw_score, max_score, 'completed');
+        //this.triggerSkipped();
+        //this.triggerSkippedQuestioneer();
         wrapper.classList.add('submitted');
       };
       wrapper.appendChild(submitButton);
