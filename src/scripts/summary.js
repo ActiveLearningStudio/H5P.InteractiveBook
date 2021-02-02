@@ -373,6 +373,7 @@ class Summary extends H5P.EventDispatcher {
         }
 
         this.parent.triggerXAPIScored(raw_score, max_score, 'completed');
+        this.parent.triggerXAPIScored(raw_score, max_score, 'submitted-curriki');
         //this.triggerSkipped();
         //this.triggerSkippedQuestioneer();
         wrapper.classList.add('submitted');
