@@ -41,6 +41,38 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     this.params.behaviour.enableSolutionsButton = false;
     this.params.behaviour.enableRetry = false;
 
+    this.getChapterColumnState = function (chapterId) {
+      
+      let data = contentData;
+      // Get previous state object or create new state object
+      var state = (data.previousState ? data.previousState : {});
+      if (!state.instances) {
+        state.instances = [];
+      }
+
+      state.instances = [];
+      if (!this.chapters[chapterId].hasOwnProperty("isSummary")) {
+        return;
+      }
+
+      var chapterInstance = this.chapters[chapterId].instance;
+      let instances = chapterInstance.getInstances();
+      
+      // Grab the current state for each instance
+      for (var i = 0; i < instances.length; i++) {
+        var instance = instances[i];
+
+        if (instance.getCurrentState instanceof Function ||
+            typeof instance.getCurrentState === 'function') {
+
+          //state.instances[x][i] = instance.getCurrentState();
+          state.instances.push(instance.getCurrentState());
+        }
+      }
+        
+      return state;
+    };
+    
     /**
      * Check if result has been submitted or input has been given.
      *
@@ -647,7 +679,16 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       }
     });
 
+    this.manageSate = () => {
+      if (this.chapters.length > 0) {
+        const currentChapterId = self.getActiveChapter();
+        let chapterColumnState = self.getChapterColumnState(currentChapterId);
+        H5P.setUserData(self.contentId, 'state', chapterColumnState, {deleteOnChange: true, async: false, subContentId: currentChapterId});
+      }
+    }
+
     H5P.externalDispatcher.on('xAPI', function (event) {
+      self.manageSate();
       const actionVerbs = [
         'answered',
         'completed',
