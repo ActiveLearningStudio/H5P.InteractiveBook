@@ -31,6 +31,20 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     this.largeSurface = 'h5p-interactive-book-large';
 
     this.chapters = [];
+    
+    this.state = {
+      activeChapter: this.activeChapter,
+      activeChapterIndexOneBased: this.activeChapter + 1
+    }
+
+    //console.log("state before **** ", this.state);
+    H5P.getUserData(contentId, 'state', function(err, previousState) {
+      let bookState = {...previousState};
+      if (Object.keys(bookState).length > 0) {
+        self.state = bookState;
+        //self.activeChapter = bookState.activeChapter; // set ative chapter on page load from state in backend
+      }
+    });
 
     /*
      * this.params.behaviour.enableSolutionsButton and this.params.behaviour.enableRetry
@@ -40,6 +54,19 @@ export default class InteractiveBook extends H5P.EventDispatcher {
      */
     this.params.behaviour.enableSolutionsButton = false;
     this.params.behaviour.enableRetry = false;
+
+    this.setState = function (newaState) {
+      self.state = {...newaState};
+    }
+
+    /*this.getCurrentState = function () {
+      if (contentData.previousState) {
+        console.log("contentData ==== ", contentData.previousState);
+        return contentData.previousState;
+      } else {
+        return {};
+      }
+    }*/
 
     this.getChapterColumnState = function (chapterId) {
       
@@ -680,10 +707,21 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     });
 
     this.manageSate = () => {
-      if (this.chapters.length > 0) {
+      
+      // set ative chapter on page load from state in backend
+      /*self.setState({
+        ...self.state, 
+        activeChapter: self.activeChapter,
+        activeChapterIndexOneBased: self.activeChapter + 1
+      });*/
+      
+      H5P.setUserData(self.contentId, 'state', self.state);
+      
+      if (self.chapters.length > 0) {
         const currentChapterId = self.getActiveChapter();
         let chapterColumnState = self.getChapterColumnState(currentChapterId);
-        H5P.setUserData(self.contentId, 'state', chapterColumnState, {deleteOnChange: true, async: false, subContentId: currentChapterId});
+        let subContentIdOneBased = currentChapterId + 1;
+        H5P.setUserData(self.contentId, 'state', chapterColumnState, {subContentId: subContentIdOneBased});
       }
     }
 

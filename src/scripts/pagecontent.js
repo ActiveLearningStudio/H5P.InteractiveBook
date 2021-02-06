@@ -213,7 +213,7 @@ class PageContent extends H5P.EventDispatcher {
         }
       };
       
-      const chapterIdOneBasedIndex = i;
+      const chapterIdOneBasedIndex = i + 1;
       let chapterLibConfig = config.chapters[i];
       instanceContentData.previousState = {};
       H5P.getUserData(contentId, 'state', function(err, previousState) {
@@ -221,6 +221,7 @@ class PageContent extends H5P.EventDispatcher {
           instanceContentData.previousState = previousState;
         }
       }, chapterIdOneBasedIndex);
+      
       const newInstance = H5P.newRunnable(config.chapters[i], contentId, undefined, undefined, instanceContentData);
       this.parent.bubbleUp(newInstance, 'resize', this.parent);
 
