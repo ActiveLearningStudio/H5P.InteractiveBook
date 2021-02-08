@@ -785,6 +785,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     this.setSectionStatusByID = (sectionUUID, chapterId) => {
       this.chapters[chapterId].sections.forEach((section, index) => {
         const sectionInstance = section.instance;
+        if(sectionInstance.libraryInfo.machineName === 'H5P.StarRating') return;
         const dealQuestionnaire = sectionInstance.libraryInfo.machineName === 'H5P.Questionnaire';
         if ( sectionInstance.subContentId === sectionUUID && !section.taskDone && !dealQuestionnaire) {
           // Check if instance has given an answer
