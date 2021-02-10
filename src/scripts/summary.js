@@ -398,12 +398,35 @@ class Summary extends H5P.EventDispatcher {
     
     for (const chapter of this.chapters) {
       var sections = (chapter.sections.filter(section => section.isTask));
+      
       for (const section of sections) {
+        //console.log(section); 
+        if(section.content.metadata.contentType == "Course Presentation"){
+          var taskDone = this.parseCPContent(section);
+          if(taskDone) {
+            section.instance.triggerXAPI('skipped');
+          }
+        }
         if(!section.taskDone) {
-          this.skippedStatement(section);
+          section.instance.triggerXAPI('skipped');
+          //section.instance.parent.triggerXAPIScored(raw_score, max_score, 'skipped');
         }
       }
     }
+  }
+
+
+  parseCPContent(section) {
+    for (const slide of section.instance.slidesWithSolutions) {
+      for(const item of slide) {
+        if(item.getAnswerGiven()){
+          
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   /**
