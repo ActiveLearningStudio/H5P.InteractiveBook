@@ -374,7 +374,7 @@ class Summary extends H5P.EventDispatcher {
 
         this.parent.triggerXAPIScored(raw_score, max_score, 'completed');
         this.parent.triggerXAPIScored(raw_score, max_score, 'submitted-curriki');
-        //this.triggerSkipped();
+        this.triggerSkipped();
         //this.triggerSkippedQuestioneer();
         wrapper.classList.add('submitted');
       };
@@ -400,32 +400,58 @@ class Summary extends H5P.EventDispatcher {
       var sections = (chapter.sections.filter(section => section.isTask));
       
       for (const section of sections) {
-        //console.log(section); 
+        
         if(section.content.metadata.contentType == "Course Presentation"){
           var taskDone = this.parseCPContent(section);
-          if(taskDone) {
+          if(!taskDone) {
             section.instance.triggerXAPI('skipped');
+            
           }
+          continue;
+        }
+
+        if(section.content.metadata.contentType == "Interactive Video"){
+          console.log(section); 
+          var ivTaskDone = this.parseIVContent(section);
+          if(!ivTaskDone) {
+            section.instance.triggerXAPI('skipped');
+            
+          }
+          continue;
         }
         if(!section.taskDone) {
           section.instance.triggerXAPI('skipped');
-          //section.instance.parent.triggerXAPIScored(raw_score, max_score, 'skipped');
         }
       }
     }
   }
 
-
+  /**
+   * To Parse Course presentation content
+   * @param {*} section 
+   */
   parseCPContent(section) {
     for (const slide of section.instance.slidesWithSolutions) {
       for(const item of slide) {
         if(item.getAnswerGiven()){
-          
+          console.log(item.getAnswerGiven());
           return true;
         }
       }
     }
-
+    return false;
+  }
+  /**
+   * To Parse Interactive Video content
+   * @param {*} section 
+   */
+  parseIVContent(section) {
+    for (const iv_interaction of section.instance.interactions) {
+      if(typeof iv_interaction.getLastXAPIVerb() != "undefined") {
+        console.log(iv_interaction.getLastXAPIVerb());
+        return true;
+      }
+    }
     return false;
   }
 
