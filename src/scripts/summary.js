@@ -363,7 +363,19 @@ class Summary extends H5P.EventDispatcher {
       submitButton.classList.add('h5p-interactive-book-summary-submit');
       submitButton.onclick = () => {
         this.trigger('submitted');
-        this.parent.triggerXAPIScored(this.parent.getScore(), this.parent.getMaxScore(), 'completed');
+        
+      
+        var max_score = this.parent.getMaxScore();
+        var raw_score = this.parent.getScore();
+
+        if(max_score === raw_score) {
+          max_score += 1;
+        }
+
+        this.parent.triggerXAPIScored(raw_score, max_score, 'completed');
+        this.parent.triggerXAPIScored(raw_score, max_score, 'submitted-curriki');
+        //this.triggerSkipped();
+        //this.triggerSkippedQuestioneer();
         wrapper.classList.add('submitted');
       };
       wrapper.appendChild(submitButton);
@@ -376,6 +388,90 @@ class Summary extends H5P.EventDispatcher {
     wrapper.appendChild(this.createSubmittedConfirmation());
 
     this.wrapper.appendChild(wrapper);
+  }
+
+
+   /**
+   * Fetch unanswered statements
+   */
+  triggerSkipped() {
+    
+    for (const chapter of this.chapters) {
+      var sections = (chapter.sections.filter(section => section.isTask));
+      
+      for (const section of sections) {
+        //console.log(section); 
+        if(section.content.metadata.contentType == "Course Presentation"){
+          var taskDone = this.parseCPContent(section);
+          if(taskDone) {
+            section.instance.triggerXAPI('skipped');
+          }
+        }
+        if(!section.taskDone) {
+          section.instance.triggerXAPI('skipped');
+          //section.instance.parent.triggerXAPIScored(raw_score, max_score, 'skipped');
+        }
+      }
+    }
+  }
+
+
+  parseCPContent(section) {
+    for (const slide of section.instance.slidesWithSolutions) {
+      for(const item of slide) {
+        if(item.getAnswerGiven()){
+          
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Fetch unInteracted Questioneer
+   */
+  triggerSkippedQuestioneer() {
+    for (const chapter of this.chapters) {
+      var sections = (chapter.sections.filter(section => section.content.metadata.contentType == "Questionnaire"));
+      for (const section of sections) {
+          if(!section.taskDone) { 
+              var rwa = this.createXAPIEventTemplate("answered");
+              const definition = rwa.getVerifiedStatementValue(['object', 'definition']);
+                Object.assign(definition, {
+                  interactionType: 'compound',
+                  type: 'http://adlnet.gov/expapi/activities/cmi.interaction',
+                  description: {'en-US': ''},
+                  name: {'en-US': section.metadata.title},
+                });
+              rwa.data.statement.object.id = "https://dev.currikistudio.org/h5p/embed/"+section.instance.contentId+"?subContentId="+section.content.subContentId;
+              rwa.data.statement.object.objectType = "Activity";
+              rwa.data.statement.verb.id = "http://id.tincanapi.com/verb/skipped";
+              rwa.data.statement.verb.display["en-US"] = "skipped";
+              this.trigger(rwa);
+            
+          }
+      }
+    }
+  }
+
+  /**
+   * To trigger the XAPI statement
+   * @param {*} section 
+   */
+  skippedStatement(section) {
+    var api_data = section.instance.getXAPIData();
+    console.log(api_data);
+    api_data.statement.context.platform = "Google Classroom";
+    var rwa = this.createXAPIEventTemplate("answered");
+    
+    rwa.data.statement.verb.id = "http://id.tincanapi.com/verb/skipped";
+    rwa.data.statement.verb.display["en-US"] = "skipped";
+    rwa.data.statement.object = api_data.statement.object;
+    rwa.data.statement.context = api_data.statement.context;
+    rwa.data.statement.result = api_data.statement.result;
+    this.trigger(rwa);
   }
 
   /**
