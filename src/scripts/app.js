@@ -91,9 +91,9 @@ export default class InteractiveBook extends H5P.EventDispatcher {
 
         if (instance.getCurrentState instanceof Function ||
             typeof instance.getCurrentState === 'function') {
-
-          //state.instances[x][i] = instance.getCurrentState();
           state.instances.push(instance.getCurrentState());
+        } else {
+          state.instances.push(null);
         }
       }
         
