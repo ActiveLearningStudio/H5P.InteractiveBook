@@ -83,7 +83,12 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       }
 
       var chapterInstance = this.chapters[chapterId].instance;
-      let instances = chapterInstance.getInstances();
+      let instances = [];
+
+      if (chapterInstance.getInstances instanceof Function ||
+          typeof chapterInstance.getInstances === 'function') {
+        instances = chapterInstance.getInstances();
+      }
       
       // Grab the current state for each instance
       for (var i = 0; i < instances.length; i++) {
