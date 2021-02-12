@@ -796,20 +796,18 @@ export default class InteractiveBook extends H5P.EventDispatcher {
             this.chapters[chapterId].tasksLeft -= 1;
           }
           this.updateChapterProgress(chapterId);
-        } else if (sectionInstance.subContentId === sectionUUID && !section.taskDone && dealQuestionnaire) {
+        } else if (sectionInstance.subContentId === sectionUUID && dealQuestionnaire) {
           // this block set progress for Questionnaire when it is submitted/finished.
           const instanceState = section.instance.getCurrentState();
-          if (instanceState.progress === (section.instance.state.questionnaireElements.length - 1)) {
+          //if (instanceState.progress === (section.instance.state.questionnaireElements.length - 1)) {
+          if (instanceState.hasOwnProperty('finished') && instanceState.finished === true) {
             section.taskDone = true;
-            // iteratre over "Questionnaire Set" to update the progress
             section.instance.state.questionnaireElements.forEach(questionnaireElement => {
-              if (questionnaireElement.answered === true) {
-                this.sideBar.setSectionMarker(chapterId, index);
-                if (section.taskDone) {
-                  this.chapters[chapterId].tasksLeft -= 1;
-                }
-                this.updateChapterProgress(chapterId);
+              this.sideBar.setSectionMarker(chapterId, index);
+              if (section.taskDone) {
+                this.chapters[chapterId].tasksLeft -= 1;
               }
+              this.updateChapterProgress(chapterId);
             });
           }
         }
