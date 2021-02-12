@@ -218,6 +218,17 @@ class PageContent extends H5P.EventDispatcher {
       instanceContentData.previousState = {};
       H5P.getUserData(contentId, 'state', function(err, previousState) {
         if (previousState) {
+          // avoid finish message for quetionnaire while loading previous state.
+          if (previousState.hasOwnProperty('instances')) {
+            for (let instIndex = 0; instIndex < previousState.instances.length; instIndex++) {
+              let instPreState = previousState.instances[instIndex];
+              if (instPreState !== null && typeof instPreState === 'object'
+                  && instPreState.hasOwnProperty('finished') && instPreState.finished === true
+                  && instPreState.hasOwnProperty('progress') && instPreState.hasOwnProperty('questions')) {
+                    previousState.instances[instIndex].finished = false;
+              }
+            }
+          }
           instanceContentData.previousState = previousState;
         }
       }, chapterIdOneBasedIndex);
