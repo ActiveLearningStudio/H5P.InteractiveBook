@@ -212,14 +212,31 @@ class PageContent extends H5P.EventDispatcher {
           ...contentData.metadata,
         }
       };
+      
+      const chapterIdOneBasedIndex = i + 1;
+      let chapterLibConfig = config.chapters[i];
+      instanceContentData.previousState = {};
+      H5P.getUserData(contentId, 'state', function(err, previousState) {
+        if (previousState) {
+          instanceContentData.previousState = previousState;
+        }
+      }, chapterIdOneBasedIndex);
+      let markCompleted = false;
+      if (instanceContentData.previousState.instances) {
+        const previousState =  instanceContentData.previousState;
+        let checkTask = previousState.instances[(previousState.instances.length)-1];
+        if (checkTask.tasksLeft === 0) {
+          markCompleted = true;
+        } 
+      }
       const newInstance = H5P.newRunnable(config.chapters[i], contentId, undefined, undefined, instanceContentData);
       this.parent.bubbleUp(newInstance, 'resize', this.parent);
 
       const chapter = {
-        isInitialized: false,
+        isInitialized: markCompleted,
         instance: newInstance,
         title: config.chapters[i].metadata.title,
-        completed: false,
+        completed: markCompleted,
         tasksLeft: 0,
         isSummary: false,
         sections: newInstance.getInstances().map((instance, contentIndex) => ({
@@ -264,6 +281,7 @@ class PageContent extends H5P.EventDispatcher {
 
     if (this.parent.hasSummary(chapters)) {
       const columnNode = document.createElement('div');
+      // console.log(this.parent, "Parent IB in pagecontent");
       const newInstance = new Summary({
         ...config,
       },
@@ -271,7 +289,7 @@ class PageContent extends H5P.EventDispatcher {
       this.getChapters(false)
       );
       this.parent.bubbleUp(newInstance, 'resize', this.parent);
-
+      this.parent.checkCompletedChapters();
       const chapter = {
         isInitialized: false,
         instance: newInstance,
