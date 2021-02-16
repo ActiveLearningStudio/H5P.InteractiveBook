@@ -375,7 +375,7 @@ class Summary extends H5P.EventDispatcher {
         this.parent.triggerXAPIScored(raw_score, max_score, 'completed');
         this.parent.triggerXAPIScored(raw_score, max_score, 'submitted-curriki');
         this.triggerSkipped();
-        this.triggerSkippedQuestioneer();
+        //this.triggerSkippedQuestioneer();
         wrapper.classList.add('submitted');
       };
       wrapper.appendChild(submitButton);
@@ -404,7 +404,7 @@ class Summary extends H5P.EventDispatcher {
         if(section.content.metadata.contentType == "Course Presentation"){
           var taskDone = this.parseCPContent(section);
           if(!taskDone) {
-            section.instance.triggerXAPI('skipped');
+            section.instance.triggerXAPIScored(0,1,'skipped');
             
           }
           continue;
@@ -413,7 +413,7 @@ class Summary extends H5P.EventDispatcher {
         if(section.content.metadata.contentType == "Interactive Video"){
           var ivTaskDone = this.parseIVContent(section);
           if(!ivTaskDone) {
-            section.instance.triggerXAPI('skipped');
+            section.instance.triggerXAPIScored(0,1,'skipped');
             
           }
           continue;
@@ -422,14 +422,22 @@ class Summary extends H5P.EventDispatcher {
         if(section.content.metadata.contentType == "Questionnaire"){
           var qTaskDone = this.parseQContent(section);
           if(!qTaskDone) {
-            section.instance.triggerXAPI('skipped');
+            //section.instance.triggerXAPI('skipped');
+            const customProgressedEvent = section.instance.createXAPIEventTemplate('skipped');
+            
+            if (customProgressedEvent.data.statement.object) {
+              customProgressedEvent.data.statement.object.definition['name'] = {'en-US': section.content.metadata.title};
+              console.log(customProgressedEvent);
+              //section.instance.triggerXAPIScored(0,1,customProgressedEvent);
+              section.instance.trigger(customProgressedEvent);
+            }
             
           }
           continue;
         }
 
         if(!section.taskDone) {
-          section.instance.triggerXAPI('skipped');
+          section.instance.triggerXAPIScored(0,1,'skipped');
         }
       }
     }
@@ -480,35 +488,7 @@ class Summary extends H5P.EventDispatcher {
     return false;
   }
 
-  /**
-   * Fetch unInteracted Questioneer
-   */
-  triggerSkippedQuestioneer() {
-    for (const chapter of this.chapters) {
-      var sections = (chapter.sections.filter(section => section.content.metadata.contentType == "Questionnaire"));
-      for (const section of sections) {
-        console.log(section);
-          if(!section.taskDone) { 
-            section.instance.triggerXAPI('skipped');
-              /*
-                var rwa = this.createXAPIEventTemplate("answered");
-                const definition = rwa.getVerifiedStatementValue(['object', 'definition']);
-                Object.assign(definition, {
-                  interactionType: 'compound',
-                  type: 'http://adlnet.gov/expapi/activities/cmi.interaction',
-                  description: {'en-US': ''},
-                  name: {'en-US': section.metadata.title},
-                });
-              rwa.data.statement.object.id = "https://dev.currikistudio.org/h5p/embed/"+section.instance.contentId+"?subContentId="+section.content.subContentId;
-              rwa.data.statement.object.objectType = "Activity";
-              rwa.data.statement.verb.id = "http://id.tincanapi.com/verb/skipped";
-              rwa.data.statement.verb.display["en-US"] = "skipped";
-              this.trigger(rwa);*/
-            
-          }
-      }
-    }
-  }
+  
 
   /**
    * To trigger the XAPI statement
