@@ -23,8 +23,11 @@ class Summary extends H5P.EventDispatcher {
     this.filterActionAll = 'all';
     this.filterActionUnanswered = 'unanswered';
     this.bookCompleted = false;
-
-    parent.on('bookCompleted', event => this.setBookComplete(event.data.completed));
+    // console.log(this.parent, "Summary Constructor");
+    if (this.parent.completed) {
+      this.parent.trigger('bookCompleted', {completed: this.completed});
+      parent.on('bookCompleted', event => this.setBookComplete(event.data.completed));
+    }
     parent.on('toggleMenu', () => {
       const footer = document.querySelector('.h5p-interactive-book-summary-footer');
       if ( footer && this.bookCompleted ) {
@@ -81,6 +84,7 @@ class Summary extends H5P.EventDispatcher {
    * @param {boolean} complete
    */
   setBookComplete(complete) {
+    // console.trace(this.parent, "Summary Page");
     let summaryFooter = this.parent.mainWrapper[0].querySelector('.h5p-interactive-book-summary-footer');
     if ( !summaryFooter && this.parent.isSmallSurface()) {
       summaryFooter = document.createElement("div");
@@ -282,16 +286,28 @@ class Summary extends H5P.EventDispatcher {
    */
   addScoreProgress() {
     let totalInteractions = 0, uncompletedInteractions = 0;
+    let getScore, getMaxScore ;
     for (const chapter of this.chapters) {
       totalInteractions += chapter.maxTasks;
       uncompletedInteractions += chapter.tasksLeft;
+      let sections = chapter.sections;
+      for (const section of sections) {
+        console.log(section);
+        if (section.instance.libraryInfo.machineName === 'H5P.DragQuestion') {
+          getScore = 0; getMaxScore=0;
+          break;
+        }
+      }
     }
-
+    if (getScore !== 0 && getMaxScore !== 0) {
+      getScore = this.parent.getScore();
+      getMaxScore = this.parent.getMaxScore();
+    }
     const box = this.createProgress(
       this.l10n.totalScoreLabel,
       this.l10n.interactionsProgressSubtext,
-      this.parent.getScore(),
-      this.parent.getMaxScore(),
+      getScore,
+      getMaxScore,
       true,
       Math.max(totalInteractions - uncompletedInteractions, 0),
       totalInteractions
@@ -445,6 +461,9 @@ class Summary extends H5P.EventDispatcher {
   createSectionList(sections, chapterId) {
     let sectionElements = [], hasUnansweredInteractions = false;
     for (const section of sections) {
+      if (section.content.metadata.contentType == "Drag and Drop") {
+        continue;
+      }
       const sectionRow = document.createElement("li");
       sectionRow.classList.add('h5p-interactive-book-summary-overview-section-details');
       if (this.behaviour.progressIndicators) {
@@ -481,6 +500,7 @@ class Summary extends H5P.EventDispatcher {
       score.classList.add('h5p-interactive-book-summary-section-score');
       score.innerHTML = '-';
       if ( typeof section.instance.getScore === 'function') {
+        console.log(section.instance, "section");
         score.innerHTML = this.l10n.scoreText.replace('@score', section.instance.getScore()).replace('@maxscore', section.instance.getMaxScore());
       }
 
@@ -656,7 +676,7 @@ class Summary extends H5P.EventDispatcher {
     const summaryList = document.createElement("ol");
     summaryList.classList.add('h5p-interactive-book-summary-overview-list');
     for ( const chapter of this.chapters) {
-      summaryList.appendChild(this.createChapterOverview(chapter));
+      summaryList.appendChild(this. createChapterOverview(chapter));
     }
     const emptySummaryList = document.createElement("p");
     emptySummaryList.classList.add('h5p-interactive-book-summary-overview-list-empty');
@@ -715,7 +735,11 @@ class Summary extends H5P.EventDispatcher {
       this.addProgressIndicators();
       this.addActionButtons();
       this.addSummaryOverview();
-      this.addScoreBar();
+      let checkDragQuestion = this.chapters.filter(chapter=> chapter.sections.filter(section=>  section.instance.libraryInfo.machineName === 'H5P.DragQuestion'));
+      console.log(checkDragQuestion, "addSummaryPage");
+      if (!checkDragQuestion) {
+        this.addScoreBar();
+      }
     }
     else {
       this.noChapterInteractions();

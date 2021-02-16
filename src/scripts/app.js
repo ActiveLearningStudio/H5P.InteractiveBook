@@ -42,7 +42,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       let bookState = {...previousState};
       if (Object.keys(bookState).length > 0) {
         self.state = bookState;
-        //self.activeChapter = bookState.activeChapter; // set ative chapter on page load from state in backend
+        self.activeChapter = bookState.activeChapter; // set ative chapter on page load from state in backend
       }
     });
 
@@ -57,16 +57,16 @@ export default class InteractiveBook extends H5P.EventDispatcher {
 
     this.setState = function (newaState) {
       self.state = {...newaState};
-    }
+    };
 
-    /*this.getCurrentState = function () {
-      if (contentData.previousState) {
-        console.log("contentData ==== ", contentData.previousState);
-        return contentData.previousState;
-      } else {
-        return {};
-      }
-    }*/
+    // this.getCurrentState = function () {
+    //   if (contentData.previousState) {
+    //     console.log("contentData ==== ", contentData.previousState);
+    //     return contentData.previousState;
+    //   } else {
+    //     return {};
+    //   }
+    // };
 
     this.getChapterColumnState = function (chapterId) {
       
@@ -76,12 +76,11 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       if (!state.instances) {
         state.instances = [];
       }
-
+      // console.log(this.chapters[chapterId], "getChapterColumnState");
       state.instances = [];
-      if (!this.chapters[chapterId].hasOwnProperty("isSummary")) {
+      if (this.chapters[chapterId].title === "Summary") {
         return;
       }
-
       var chapterInstance = this.chapters[chapterId].instance;
       let instances = chapterInstance.getInstances();
       
@@ -96,7 +95,8 @@ export default class InteractiveBook extends H5P.EventDispatcher {
           state.instances.push(instance.getCurrentState());
         }
       }
-        
+      console.log(this.chapters[chapterId].tasksLeft);
+      state.instances.push({tasksLeft:this.chapters[chapterId].tasksLeft});
       return state;
     };
     
@@ -613,7 +613,6 @@ export default class InteractiveBook extends H5P.EventDispatcher {
      */
     this.handleChapterCompletion = (chapterId, completed = true) => {
       const chapter = this.chapters[chapterId];
-
       if (chapter.isSummary === true) {
         return;
       }
@@ -707,26 +706,42 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     });
 
     this.manageSate = () => {
-      
-      // set ative chapter on page load from state in backend
-      /*self.setState({
+      // set active chapter on page load from state in backend
+      self.setState({
         ...self.state, 
         activeChapter: self.activeChapter,
         activeChapterIndexOneBased: self.activeChapter + 1
-      });*/
+      });
       
       H5P.setUserData(self.contentId, 'state', self.state);
       
       if (self.chapters.length > 0) {
         const currentChapterId = self.getActiveChapter();
         let chapterColumnState = self.getChapterColumnState(currentChapterId);
-        let subContentIdOneBased = currentChapterId + 1;
-        H5P.setUserData(self.contentId, 'state', chapterColumnState, {subContentId: subContentIdOneBased});
+        console.log(chapterColumnState, "column state");
+        if (chapterColumnState) {
+          let subContentIdOneBased = currentChapterId + 1;
+          H5P.setUserData(self.contentId, 'state', chapterColumnState, {subContentId: subContentIdOneBased});
+        }
       }
-    }
-
+    };
+    this.checkCompletedChapters = () =>{
+      let chapters = this.chapters;
+      chapters.find((chapter, index)=>{
+        if (chapter.isSummary) return;
+        if (chapter.completed) {
+          if (chapter.tasksLeft !== 0) {
+            chapter.sections.forEach((section) => {
+              self.setSectionStatusByID(section.content.subContentId, index);
+            });
+            this.setChapterRead(index);
+          }
+        }
+      });
+    };
     H5P.externalDispatcher.on('xAPI', function (event) {
       self.manageSate();
+      self.checkCompletedChapters();
       const actionVerbs = [
         'answered',
         'completed',
@@ -739,10 +754,10 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       const isInitialized = self.chapters.length;
 
       if (self !== this && isActionVerb && isInitialized) {
+        // console.log("I ran after updates");
         self.setSectionStatusByID(this.subContentId || this.contentData.subContentId, self.activeChapter);
       }
     });
-
     /**
      * Redirect chapter.
      *
@@ -785,16 +800,21 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     this.setSectionStatusByID = (sectionUUID, chapterId) => {
       this.chapters[chapterId].sections.forEach((section, index) => {
         const sectionInstance = section.instance;
-        if(sectionInstance.libraryInfo.machineName === 'H5P.StarRating') return;
+        if (sectionInstance.libraryInfo.machineName === 'H5P.StarRating') return;
         const dealQuestionnaire = sectionInstance.libraryInfo.machineName === 'H5P.Questionnaire';
         if ( sectionInstance.subContentId === sectionUUID && !section.taskDone && !dealQuestionnaire) {
           // Check if instance has given an answer
-          section.taskDone = sectionInstance.getAnswerGiven ? sectionInstance.getAnswerGiven() : true;
-                    
+          if (sectionInstance.libraryInfo.machineName ==='H5P.DragQuestion') {
+            section.taskDone = true;
+          }
+          else {
+            section.taskDone = sectionInstance.getAnswerGiven ? sectionInstance.getAnswerGiven() : true;
+          }
           this.sideBar.setSectionMarker(chapterId, index);
-          if (section.taskDone) {
+          if (section.taskDone && this.chapters[chapterId].tasksLeft !== 0) {
             this.chapters[chapterId].tasksLeft -= 1;
           }
+          console.log(this.chapters[chapterId], "NON Questionnaire Chapter");
           this.updateChapterProgress(chapterId);
         } else if (sectionInstance.subContentId === sectionUUID && !section.taskDone && dealQuestionnaire) {
           // this block set progress for Questionnaire when it is submitted/finished.
@@ -803,11 +823,12 @@ export default class InteractiveBook extends H5P.EventDispatcher {
             section.taskDone = true;
             // iteratre over "Questionnaire Set" to update the progress
             section.instance.state.questionnaireElements.forEach(questionnaireElement => {
-              if (questionnaireElement.answered === true) {
+              if (questionnaireElement || questionnaireElement.answered === true) {
                 this.sideBar.setSectionMarker(chapterId, index);
-                if (section.taskDone) {
+                if (section.taskDone && this.chapters[chapterId].tasksLeft !== 0) {
                   this.chapters[chapterId].tasksLeft -= 1;
                 }
+                console.log(this.chapters[chapterId], "Questionnaire Chapter");  
                 this.updateChapterProgress(chapterId);
               }
             });
@@ -856,6 +877,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
      * @param {jQuery} $wrapper
      */
     this.attach = ($wrapper) => {
+      self.checkCompletedChapters();
       this.mainWrapper = $wrapper;
       // Needed to enable scrolling in fullscreen
       $wrapper.addClass('h5p-interactive-book h5p-scrollable-fullscreen');
@@ -945,7 +967,6 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       behaviour: this.params.behaviour
     });
     this.chapters = this.pageContent.getChapters();
-
     this.sideBar = new SideBar(this.params, contentId, contentData.metadata.title, this);
 
     this.statusBarHeader = new StatusBar(contentId, this.chapters.length, this, {
