@@ -282,11 +282,22 @@ class Summary extends H5P.EventDispatcher {
    */
   addScoreProgress() {
     let totalInteractions = 0, uncompletedInteractions = 0;
+    let getScore, getMaxScore ;
     for (const chapter of this.chapters) {
       totalInteractions += chapter.maxTasks;
       uncompletedInteractions += chapter.tasksLeft;
+      let sections = chapter.sections;
+      for (const section of sections) {
+        if (section.instance.libraryInfo.machineName === 'H5P.NonscoreableDragQuestion') {
+          getScore = 0; getMaxScore=0;
+          break;
+        }
+      }
     }
-
+    if (getScore !== 0 && getMaxScore !== 0) {
+      getScore = this.parent.getScore();
+      getMaxScore = this.parent.getMaxScore();
+    }
     const box = this.createProgress(
       this.l10n.totalScoreLabel,
       this.l10n.interactionsProgressSubtext,
@@ -575,6 +586,9 @@ class Summary extends H5P.EventDispatcher {
   createSectionList(sections, chapterId) {
     let sectionElements = [], hasUnansweredInteractions = false;
     for (const section of sections) {
+      if (section.content.metadata.contentType == "Nonscoreable Drag Text") {
+        continue;
+      }
       const sectionRow = document.createElement("li");
       sectionRow.classList.add('h5p-interactive-book-summary-overview-section-details');
       if (this.behaviour.progressIndicators) {
