@@ -573,7 +573,7 @@ class SideBar extends H5P.EventDispatcher {
    */
   createSectionLink(chapterId, i, title = null, headerNumber = null) {
     const section = this.chapters[chapterId].sections[i];
-
+    console.log(chapterId, "chapterId");
     const sectionTitleText = document.createElement('div');
     sectionTitleText.innerHTML = title || section.title;
     sectionTitleText.setAttribute('title', title || section.title);

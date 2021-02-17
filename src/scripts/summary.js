@@ -293,7 +293,7 @@ class Summary extends H5P.EventDispatcher {
       let sections = chapter.sections;
       for (const section of sections) {
         console.log(section);
-        if (section.instance.libraryInfo.machineName === 'H5P.DragQuestion') {
+        if (section.instance.libraryInfo.machineName === 'H5P.NonscoreableDragQuestion') {
           getScore = 0; getMaxScore=0;
           break;
         }
@@ -461,7 +461,7 @@ class Summary extends H5P.EventDispatcher {
   createSectionList(sections, chapterId) {
     let sectionElements = [], hasUnansweredInteractions = false;
     for (const section of sections) {
-      if (section.content.metadata.contentType == "Drag and Drop") {
+      if (section.content.metadata.contentType == "Nonscoreable Drag Text") {
         continue;
       }
       const sectionRow = document.createElement("li");
@@ -500,7 +500,6 @@ class Summary extends H5P.EventDispatcher {
       score.classList.add('h5p-interactive-book-summary-section-score');
       score.innerHTML = '-';
       if ( typeof section.instance.getScore === 'function') {
-        console.log(section.instance, "section");
         score.innerHTML = this.l10n.scoreText.replace('@score', section.instance.getScore()).replace('@maxscore', section.instance.getMaxScore());
       }
 
@@ -735,11 +734,7 @@ class Summary extends H5P.EventDispatcher {
       this.addProgressIndicators();
       this.addActionButtons();
       this.addSummaryOverview();
-      let checkDragQuestion = this.chapters.filter(chapter=> chapter.sections.filter(section=>  section.instance.libraryInfo.machineName === 'H5P.DragQuestion'));
-      console.log(checkDragQuestion, "addSummaryPage");
-      if (!checkDragQuestion) {
-        this.addScoreBar();
-      }
+      this.addScoreBar();
     }
     else {
       this.noChapterInteractions();

@@ -95,7 +95,6 @@ export default class InteractiveBook extends H5P.EventDispatcher {
           state.instances.push(instance.getCurrentState());
         }
       }
-      console.log(this.chapters[chapterId].tasksLeft);
       state.instances.push({tasksLeft:this.chapters[chapterId].tasksLeft});
       return state;
     };
@@ -718,7 +717,6 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       if (self.chapters.length > 0) {
         const currentChapterId = self.getActiveChapter();
         let chapterColumnState = self.getChapterColumnState(currentChapterId);
-        console.log(chapterColumnState, "column state");
         if (chapterColumnState) {
           let subContentIdOneBased = currentChapterId + 1;
           H5P.setUserData(self.contentId, 'state', chapterColumnState, {subContentId: subContentIdOneBased});

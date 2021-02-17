@@ -251,15 +251,21 @@ class PageContent extends H5P.EventDispatcher {
 
       // Find sections with tasks and tracks them
       chapter.sections.forEach(section => {
-        if (H5P.Column.isTask(section.instance)) {
-          section.isTask = true;
 
+        if (section.content.library === 'H5P.NonscoreableDragQuestion 1.0') {
+          section.isTask = true;
           if (this.behaviour.progressIndicators) {
             section.taskDone = false;
             chapter.tasksLeft += 1;
           }
         }
-
+        else if (H5P.Column.isTask(section.instance)) {
+          section.isTask = true;
+          if (this.behaviour.progressIndicators) {
+            section.taskDone = false;
+            chapter.tasksLeft += 1;
+          }
+        }
         const dealQuestionnaire = !section.isTask && section.instance.libraryInfo.machineName === 'H5P.Questionnaire';
         if (dealQuestionnaire) {
           section.isTask = true;
