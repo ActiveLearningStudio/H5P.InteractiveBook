@@ -36,16 +36,12 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       activeChapter: this.activeChapter,
       activeChapterIndexOneBased: this.activeChapter + 1
     }
-
-    //console.log("state before **** ", this.state);
-    H5P.getUserData(contentId, 'state', function(err, previousState) {
-      let bookState = {...previousState};
-      if (Object.keys(bookState).length > 0) {
-        self.state = bookState;
-        //self.activeChapter = bookState.activeChapter; // set ative chapter on page load from state in backend
-      }
-    });
-
+    
+    this.previousState = {};
+    if (contentData.hasOwnProperty('previousState')) {
+      this.previousState = contentData.previousState;
+    }
+    
     /*
      * this.params.behaviour.enableSolutionsButton and this.params.behaviour.enableRetry
      * are used by H5P's question type contract.
@@ -58,15 +54,6 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     this.setState = function (newaState) {
       self.state = {...newaState};
     }
-
-    /*this.getCurrentState = function () {
-      if (contentData.previousState) {
-        console.log("contentData ==== ", contentData.previousState);
-        return contentData.previousState;
-      } else {
-        return {};
-      }
-    }*/
 
     this.getChapterColumnState = function (chapterId) {
       
@@ -102,7 +89,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         }
       }
         
-      return state;
+      return {instances: [...state.instances]};
     };
     
     /**
@@ -437,7 +424,10 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       if (this.pageContent.columnNodes[this.getActiveChapter()].classList.contains('h5p-interactive-book-animate')) {
         return;
       }
-
+      
+      let newChapterState = {...event.data};
+      H5P.setUserData(self.contentId, 'state', {newChapter: newChapterState});
+      
       this.newHandler = event.data;
 
       // Create the new hash
@@ -649,6 +639,11 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         this.completed = true;
         this.trigger('bookCompleted', {completed: this.completed});
       }
+
+      H5P.getUserData(self.contentId, 'state', function(err, previousState) {
+        H5P.setUserData(self.contentId, 'state', {...previousState, completed: true}, {subContentId: (chapterId + 1)});
+      }, (chapterId + 1));
+
     };
 
     /**
@@ -719,16 +714,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     });
 
     this.manageSate = () => {
-      
       // set ative chapter on page load from state in backend
-      /*self.setState({
-        ...self.state, 
-        activeChapter: self.activeChapter,
-        activeChapterIndexOneBased: self.activeChapter + 1
-      });*/
-      
-      H5P.setUserData(self.contentId, 'state', self.state);
-      
       if (self.chapters.length > 0) {
         const currentChapterId = self.getActiveChapter();
         let chapterColumnState = self.getChapterColumnState(currentChapterId);
@@ -995,6 +981,30 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       this.statusBarHeader.updateStatusBar();
       this.statusBarFooter.updateStatusBar();
     }
+
+    if (this.previousState && this.previousState.hasOwnProperty('newChapter')) {
+      let chaptersToRestore = this.pageContent.getChapters(false);
+      for (let chapIndex = 0; chapIndex < chaptersToRestore.length; chapIndex++) {
+        const chapterObj = chaptersToRestore[chapIndex];
+        self.pageContent.preloadChapter(chapIndex);
+        for (let secIndex = 0; secIndex < chapterObj.sections.length; secIndex++) {
+          const sectionObject = chapterObj.sections[secIndex];
+          if (sectionObject.isTask) {
+            self.setSectionStatusByID(sectionObject.instance.subContentId, chapIndex);
+          }
+        }
+        let isChapterCompleted = false;
+        H5P.getUserData(self.contentId, 'state', function(err, previousState) {
+          isChapterCompleted = previousState && previousState.completed ? true : false;
+        }, (chapIndex + 1));
+
+        if (isChapterCompleted) {
+          self.setChapterRead(chapIndex);
+        }
+      }
+      this.trigger('newChapter', {...this.previousState.newChapter});
+    }
+
   }
 
   /**
