@@ -81,6 +81,9 @@ class Summary extends H5P.EventDispatcher {
    * @param {boolean} complete
    */
   setBookComplete(complete) {
+
+    if (!this.parent.mainWrapper) return;
+
     let summaryFooter = this.parent.mainWrapper[0].querySelector('.h5p-interactive-book-summary-footer');
     if ( !summaryFooter && this.parent.isSmallSurface()) {
       summaryFooter = document.createElement("div");

@@ -225,7 +225,7 @@ class PageContent extends H5P.EventDispatcher {
               if (instPreState !== null && typeof instPreState === 'object'
                   && instPreState.hasOwnProperty('finished') && instPreState.finished === true
                   && instPreState.hasOwnProperty('progress') && instPreState.hasOwnProperty('questions')) {
-                    previousState.instances[instIndex].finished = false;
+                    //previousState.instances[instIndex].finished = false;
               }
             }
           }
