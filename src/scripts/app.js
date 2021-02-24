@@ -42,6 +42,8 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       this.previousState = contentData.previousState;
     }
     
+    this.isBookDataLoaded = false;
+
     /*
      * this.params.behaviour.enableSolutionsButton and this.params.behaviour.enableRetry
      * are used by H5P's question type contract.
@@ -631,7 +633,10 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         if(col_max_score === col_raw_score) {
           col_max_score += 1;
         }
-        chapter.instance.triggerXAPIScored(col_raw_score, col_max_score, 'completed');
+
+        if (self.isBookDataLoaded) {
+          chapter.instance.triggerXAPIScored(col_raw_score, col_max_score, 'completed');
+        }
       }
 
       // All chapters completed
@@ -1008,6 +1013,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         }
       }
       this.trigger('newChapter', {...this.previousState.newChapter});
+      this.isBookDataLoaded = true;
     }
 
   }
