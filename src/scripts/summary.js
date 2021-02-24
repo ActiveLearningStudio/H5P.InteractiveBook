@@ -293,8 +293,8 @@ class Summary extends H5P.EventDispatcher {
     const box = this.createProgress(
       this.l10n.totalScoreLabel,
       this.l10n.interactionsProgressSubtext,
-      getScore,
-      getMaxScore,
+      this.parent.getScore(),
+      this.parent.getMaxScore(),
       true,
       Math.max(totalInteractions - uncompletedInteractions, 0),
       totalInteractions
