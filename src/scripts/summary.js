@@ -407,8 +407,7 @@ class Summary extends H5P.EventDispatcher {
         if(section.content.metadata.contentType == "Course Presentation"){
           var taskDone = this.parseCPContent(section);
           if(!taskDone) {
-            section.instance.triggerXAPIScored(0,1,'skipped');
-            
+            this.customTriggerStatement(section);
           }
           continue;
         }
@@ -417,7 +416,6 @@ class Summary extends H5P.EventDispatcher {
           var ivTaskDone = this.parseIVContent(section);
           if(!ivTaskDone) {
             section.instance.triggerXAPIScored(0,1,'skipped');
-            
           }
           continue;
         }
@@ -425,25 +423,30 @@ class Summary extends H5P.EventDispatcher {
         if(section.content.metadata.contentType == "Questionnaire"){
           var qTaskDone = this.parseQContent(section);
           if(!qTaskDone) {
-            //section.instance.triggerXAPI('skipped');
-            const customProgressedEvent = section.instance.createXAPIEventTemplate('skipped');
             
-            if (customProgressedEvent.data.statement.object) {
-              customProgressedEvent.data.statement.object.definition['name'] = {'en-US': section.content.metadata.title};
-              console.log(customProgressedEvent);
-              //section.instance.triggerXAPIScored(0,1,customProgressedEvent);
-              section.instance.trigger(customProgressedEvent);
-            }
-            
+            this.customTriggerStatement(section);
           }
           continue;
         }
 
         if(!section.taskDone) {
-          section.instance.triggerXAPIScored(0,1,'skipped');
+          //section.instance.triggerXAPIScored(0,1,'skipped');
+          this.customTriggerStatement(section);
         }
       }
     }
+  }
+
+  customTriggerStatement(section) {
+      //section.instance.triggerXAPI('skipped');
+      const customProgressedEvent = section.instance.createXAPIEventTemplate('skipped');
+            
+      if (customProgressedEvent.data.statement.object) {
+        customProgressedEvent.data.statement.object.definition['name'] = {'en-US': section.content.metadata.title};
+        console.log(customProgressedEvent);
+        //section.instance.triggerXAPIScored(0,1,customProgressedEvent);
+        section.instance.trigger(customProgressedEvent);
+      }
   }
 
   /**
