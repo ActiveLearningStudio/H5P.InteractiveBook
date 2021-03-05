@@ -792,13 +792,8 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         const dealQuestionnaire = sectionInstance.libraryInfo.machineName === 'H5P.Questionnaire';
         if ( sectionInstance.subContentId === sectionUUID && !section.taskDone && !dealQuestionnaire) {
           // Check if instance has given an answer
-          if (sectionInstance.libraryInfo.machineName === "H5P.NonscoreableDragQuestion") {
-            section.taskDone = true;
-          }
-          else {
-            section.taskDone = sectionInstance.getAnswerGiven ? sectionInstance.getAnswerGiven() : true;
-          }
-                    
+          section.taskDone = sectionInstance.getAnswerGiven ? sectionInstance.getAnswerGiven() : true;
+          
           this.sideBar.setSectionMarker(chapterId, index);
           if (section.taskDone) {
             this.chapters[chapterId].tasksLeft -= 1;
