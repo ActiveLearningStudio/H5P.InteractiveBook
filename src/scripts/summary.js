@@ -440,7 +440,9 @@ class Summary extends H5P.EventDispatcher {
   customTriggerStatement(section) {
       //section.instance.triggerXAPI('skipped');
       const customProgressedEvent = section.instance.createXAPIEventTemplate('skipped');
-            
+      console.log(section.content.metadata.title);
+      console.log('Updated 444');
+      console.log(section);
       if (customProgressedEvent.data.statement.object) {
         customProgressedEvent.data.statement.object.definition['name'] = {'en-US': section.content.metadata.title};
         console.log(customProgressedEvent);
