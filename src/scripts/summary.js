@@ -380,6 +380,23 @@ class Summary extends H5P.EventDispatcher {
         this.triggerSkipped();
         //this.triggerSkippedQuestioneer();
         wrapper.classList.add('submitted');
+        
+        // reset user data states
+        let contentId = this.parent.contentId;
+        H5P.getUserData(contentId, 'state', function(err, previousState) {
+          let stateData = {...previousState, newChapter: null};
+          H5P.setUserData(contentId, 'state', stateData);
+        });
+
+        let chapters = this.parent.pageContent.getChapters(false);
+        chapters.forEach((chapter, index) => {
+          let chapterIndex = index + 1;
+          H5P.getUserData(contentId, 'state', function(err, previousStateChapter) {
+            let chapterUserData = {...previousStateChapter, chapterSolved: false};
+            H5P.setUserData(contentId, 'state', chapterUserData, {subContentId: chapterIndex});
+          }, chapterIndex);
+        });
+        
       };
       wrapper.appendChild(submitButton);
     }

@@ -31,6 +31,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     this.largeSurface = 'h5p-interactive-book-large';
 
     this.chapters = [];
+    this.completedChapters = [];
     
     this.state = {
       activeChapter: this.activeChapter,
@@ -635,6 +636,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         }
 
         if (self.isBookDataLoaded) {
+          self.completedChapters.push((chapterId + 1));
           chapter.instance.triggerXAPIScored(col_raw_score, col_max_score, 'completed');
         }
       }
@@ -644,10 +646,6 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         this.completed = true;
         this.trigger('bookCompleted', {completed: this.completed});
       }
-
-      H5P.getUserData(self.contentId, 'state', function(err, previousState) {
-        H5P.setUserData(self.contentId, 'state', {...previousState, completed: true}, {subContentId: (chapterId + 1)});
-      }, (chapterId + 1));
 
     };
 
@@ -724,12 +722,18 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         const currentChapterId = self.getActiveChapter();
         let chapterColumnState = self.getChapterColumnState(currentChapterId);
         let subContentIdOneBased = currentChapterId + 1;
+        let chapterUserData = null;
+        let isChapterCompleted = self.completedChapters.find(x => x === subContentIdOneBased) === undefined ? false : true;
+        H5P.getUserData(self.contentId, 'state', function(err, previousState) { chapterUserData = previousState; }, (subContentIdOneBased));
+        if (isChapterCompleted || (chapterUserData !== null && chapterUserData.chapterSolved === true)) {
+          chapterColumnState.chapterSolved = true;
+        }
         H5P.setUserData(self.contentId, 'state', chapterColumnState, {subContentId: subContentIdOneBased});
       }
     }
 
     H5P.externalDispatcher.on('xAPI', function (event) {
-      self.manageSate();
+      
       const actionVerbs = [
         'answered',
         'completed',
@@ -743,6 +747,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       
       if (self !== this && isActionVerb && isInitialized) {
         self.setSectionStatusByID(this.subContentId || this.contentData.subContentId, self.activeChapter);
+        self.manageSate();
       }
     });
 
@@ -787,6 +792,11 @@ export default class InteractiveBook extends H5P.EventDispatcher {
      */
     this.setSectionStatusByID = (sectionUUID, chapterId) => {
       this.chapters[chapterId].sections.forEach((section, index) => {
+        let chapterUserData = null;
+        H5P.getUserData(self.contentId, 'state', function(err, previousState) {
+          chapterUserData = previousState;
+        }, (chapterId + 1));
+        
         const sectionInstance = section.instance;
         if(sectionInstance.libraryInfo.machineName === 'H5P.StarRating') return;
         const dealQuestionnaire = sectionInstance.libraryInfo.machineName === 'H5P.Questionnaire';
@@ -802,9 +812,10 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         } else if (sectionInstance.subContentId === sectionUUID && dealQuestionnaire) {
           // this block set progress for Questionnaire when it is submitted/finished.
           const instanceState = section.instance.getCurrentState();
-          //if (instanceState.progress === (section.instance.state.questionnaireElements.length - 1)) {
-          if (instanceState.hasOwnProperty('finished') && instanceState.finished === true) {
+          if ( (instanceState.progress === (section.instance.state.questionnaireElements.length - 1) && instanceState.finished && !chapterUserData.chapterSolved)
+                || (!self.isBookDataLoaded && chapterUserData && chapterUserData.chapterSolved)) {
             section.taskDone = true;
+            // iteratre over "Questionnaire Set" to update the progress
             section.instance.state.questionnaireElements.forEach(questionnaireElement => {
               this.sideBar.setSectionMarker(chapterId, index);
               if (section.taskDone) {
@@ -987,29 +998,31 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       this.statusBarFooter.updateStatusBar();
     }
 
-    if (this.previousState && this.previousState.hasOwnProperty('newChapter')) {
+    if (this.previousState && this.previousState.hasOwnProperty('newChapter') && this.previousState.newChapter !== null) {
       let chaptersToRestore = this.pageContent.getChapters(false);
       for (let chapIndex = 0; chapIndex < chaptersToRestore.length; chapIndex++) {
-        const chapterObj = chaptersToRestore[chapIndex];
-        self.pageContent.preloadChapter(chapIndex);
-        for (let secIndex = 0; secIndex < chapterObj.sections.length; secIndex++) {
-          const sectionObject = chapterObj.sections[secIndex];
-          if (sectionObject.isTask) {
-            self.setSectionStatusByID(sectionObject.instance.subContentId, chapIndex);
-          }
-        }
-        let isChapterCompleted = false;
-        H5P.getUserData(self.contentId, 'state', function(err, previousState) {
-          isChapterCompleted = previousState && previousState.completed ? true : false;
-        }, (chapIndex + 1));
 
-        if (isChapterCompleted) {
-          self.setChapterRead(chapIndex);
-        }
+        const chapterObj = chaptersToRestore[chapIndex];
+        H5P.getUserData(self.contentId, 'state', function(err, previousState) {
+          let isChapterSolved = previousState && previousState.chapterSolved ? true : false;
+          if (isChapterSolved) {
+            self.pageContent.preloadChapter(chapIndex);
+            for (let secIndex = 0; secIndex < chapterObj.sections.length; secIndex++) {
+              const sectionObject = chapterObj.sections[secIndex];
+              if (sectionObject.isTask) {
+                self.setSectionStatusByID(sectionObject.instance.subContentId, chapIndex);
+              }
+            }
+            self.setChapterRead(chapIndex);
+          }
+        }, (chapIndex + 1));
+        
       }
+
       this.trigger('newChapter', {...this.previousState.newChapter});
-      this.isBookDataLoaded = true;
     }
+    
+    this.isBookDataLoaded = true;
 
   }
 
