@@ -365,6 +365,28 @@ class Summary extends H5P.EventDispatcher {
       const submitButton = this.addButton('icon-paper-pencil', this.l10n.submitReport);
       submitButton.classList.add('h5p-interactive-book-summary-submit');
       submitButton.onclick = () => {
+        // Custom curriki xAPI statement to log all summary details
+        const data = this.chapters.filter(chapter => !chapter.isSummary).map(chapter => {
+          return {
+            title: chapter.title,
+            accessed: this.parent.getChapterStatus(chapter) === 'BLANK' ? false : true,
+            interacted: chapter.maxTasks !== chapter.tasksLeft,
+            interacted_count: chapter.maxTasks - chapter.tasksLeft,
+            total_interactions: chapter.maxTasks,
+            score: typeof chapter.instance.getScore === 'function' ? chapter.instance.getScore() : 0,
+          };
+        });
+        const xAPIEvent = this.parent.createXAPIEventTemplate({
+          'id': 'http://adlnet.gov/expapi/verbs/summary-curriki',
+          'display': {
+            'en-US': 'summary-curriki'
+          }
+        });
+        xAPIEvent.data.statement.result = {
+          response: JSON.stringify(data),
+        };
+        this.parent.trigger(xAPIEvent);
+        
         this.trigger('submitted');
         
       
