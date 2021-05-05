@@ -725,7 +725,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         let chapterUserData = null;
         let isChapterCompleted = self.completedChapters.find(x => x === subContentIdOneBased) === undefined ? false : true;
         H5P.getUserData(self.contentId, 'state', function(err, previousState) { chapterUserData = previousState; }, (subContentIdOneBased));
-        if (isChapterCompleted || (chapterUserData !== null && chapterUserData.chapterSolved === true)) {
+        if (isChapterCompleted || (!(chapterUserData === null || chapterUserData === undefined) && chapterUserData.chapterSolved === true)) {
           chapterColumnState.chapterSolved = true;
         }
         H5P.setUserData(self.contentId, 'state', chapterColumnState, {subContentId: subContentIdOneBased});
