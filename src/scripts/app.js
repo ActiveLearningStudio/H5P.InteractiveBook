@@ -582,11 +582,17 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     this.sequentialLogic = (chapterId, status) => {
       let chapterLastIndex = this.params.chapters.length - 1;
       if (chapterId === chapterLastIndex && status === 'DONE') {
-        //if it is a summary
+        // if it is a summary
         this.sideBar.updateSequentialLogicIndicator((chapterId + 1), status, true);
       }else if (chapterId > -1 && chapterId < chapterLastIndex && status === 'DONE') {
         // unlock next chapter / page after current 
         this.sideBar.updateSequentialLogicIndicator((chapterId + 1), status);
+        // if second last chapter completed, enable the summary button
+        if ((chapterId === this.params.chapters.length - 2) && self.completedChapters.find(i => i === (chapterId+1)) ) {
+          let summarySidebarNode = this.sideBar.chapterNodes[this.sideBar.chapterNodes.length - 1];
+          summarySidebarNode.classList.remove('lock-page-navigation');
+          summarySidebarNode.querySelector('button').removeAttribute('disabled');
+        }
       }
     }
 
