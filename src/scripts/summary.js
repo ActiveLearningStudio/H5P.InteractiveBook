@@ -393,12 +393,18 @@ class Summary extends H5P.EventDispatcher {
         var max_score = this.parent.getMaxScore();
         var raw_score = this.parent.getScore();
 
-        if(max_score === raw_score) {
+        if(max_score == 0 && raw_score == 0) {
+          console.log("inside if");
           max_score += 1;
         }
+        console.log("MAX-score:");
+        console.log(max_score);
+        console.log("RAw-score:");
+        console.log(raw_score);
 
-        this.parent.triggerXAPIScored(this.parent.getScore(), this.parent.getMaxScore(), 'completed');
-        this.parent.triggerXAPIScored(this.parent.getScore(), this.parent.getMaxScore(), 'submitted-curriki');
+
+        this.parent.triggerXAPIScored(raw_score, max_score, 'completed');
+        this.parent.triggerXAPIScored(raw_score, max_score, 'submitted-curriki');
         this.triggerSkipped();
         //this.triggerSkippedQuestioneer();
         wrapper.classList.add('submitted');
