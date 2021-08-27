@@ -15,7 +15,6 @@ export default class InteractiveBook extends H5P.EventDispatcher {
    */
   constructor(config, contentId, contentData = {}) {
     super();
-    console.log("Welcome !");
     const self = this;
     this.contentId = contentId;
     this.activeChapter = 0;
