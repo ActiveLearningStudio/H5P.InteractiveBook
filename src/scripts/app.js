@@ -15,6 +15,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
    */
   constructor(config, contentId, contentData = {}) {
     super();
+    console.log("Welcome !");
     const self = this;
     this.contentId = contentId;
     this.activeChapter = 0;
@@ -459,7 +460,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
        */
       if (this.params.behaviour.progressAuto) {
         const id = this.getChapterId(this.newHandler.chapter);
-        if (this.isFinalChapterWithoutTask(id)) {
+        if (id >= 0 && this.isFinalChapterWithoutTask(id)) {
           this.setChapterRead(id);
         }
       }
