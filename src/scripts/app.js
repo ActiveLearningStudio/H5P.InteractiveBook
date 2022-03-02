@@ -966,6 +966,14 @@ export default class InteractiveBook extends H5P.EventDispatcher {
 
     this.sideBar = new SideBar(this.params, contentId, contentData.metadata.title, this);
 
+    this.chapters.forEach((chapter, chapterId) => {
+      if(chapter.instance && chapter.instance.contentData &&
+          chapter.instance.contentData.previousState &&  chapter.instance.contentData.previousState.chapterSolved
+          && chapter.instance.contentData.previousState.chapterSolved === true) {
+        this.sideBar.updateChapterProgressIndicator(chapterId, 'DONE');
+      }
+    });
+
     this.statusBarHeader = new StatusBar(contentId, this.chapters.length, this, {
       l10n: this.l10n,
       a11y: this.params.a11y,
