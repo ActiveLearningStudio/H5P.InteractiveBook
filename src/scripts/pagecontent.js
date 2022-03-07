@@ -255,7 +255,8 @@ class PageContent extends H5P.EventDispatcher {
 
       // Find sections with tasks and tracks them
       chapter.sections.forEach(section => {
-        if (section.content.library === 'H5P.NonscoreableDragQuestion 1.0') {
+        const isPersonalityQuiz = section.instance.libraryInfo.machineName === 'H5P.PersonalityQuiz';
+        if (section.content.library === 'H5P.NonscoreableDragQuestion 1.0' || isPersonalityQuiz) {
           section.isTask = true;
           if (this.behaviour.progressIndicators) {
             section.taskDone = false;
