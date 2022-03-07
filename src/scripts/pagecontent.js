@@ -232,7 +232,7 @@ class PageContent extends H5P.EventDispatcher {
           instanceContentData.previousState = previousState;
         }
       }, chapterIdOneBasedIndex);
-      
+
       const newInstance = H5P.newRunnable(config.chapters[i], contentId, undefined, undefined, instanceContentData);
       this.parent.bubbleUp(newInstance, 'resize', this.parent);
 
@@ -255,8 +255,7 @@ class PageContent extends H5P.EventDispatcher {
 
       // Find sections with tasks and tracks them
       chapter.sections.forEach(section => {
-        const isPersonalityQuiz = section.instance.libraryInfo.machineName === 'H5P.PersonalityQuiz';
-        if (section.content.library === 'H5P.NonscoreableDragQuestion 1.0' || isPersonalityQuiz) {
+        if (section.content.library === 'H5P.NonscoreableDragQuestion 1.0') {
           section.isTask = true;
           if (this.behaviour.progressIndicators) {
             section.taskDone = false;
@@ -281,6 +280,22 @@ class PageContent extends H5P.EventDispatcher {
               chapter.tasksLeft += 1;
             }
           });
+        }
+
+        const dealPersonalityQuiz = section.instance.libraryInfo.machineName === 'H5P.PersonalityQuiz';
+        if (dealPersonalityQuiz) {
+          section.isTask = true;
+          if (this.behaviour.progressIndicators) {
+            section.taskDone = false;
+            chapter.tasksLeft += 1;
+          }
+          // To avoid slide completed black dot
+          H5P.getUserData(contentId, 'state', function (err, previousStateChapter) {
+            if (previousStateChapter) {
+              let chapterUserData = {...previousStateChapter, chapterSolved: false};
+              H5P.setUserData(contentId, 'state', chapterUserData, {subContentId: chapterIdOneBasedIndex});
+            }
+          }, chapterIdOneBasedIndex);
         }
       });
 
