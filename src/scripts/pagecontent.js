@@ -21,9 +21,14 @@ class PageContent extends H5P.EventDispatcher {
     this.targetPage.redirectFromComponent = false;
 
     this.columnNodes = [];
-    this.shouldAutoplay = [];
     this.chapters = [];
     this.l10n = config.l10n;
+    this.sidebarIsOpen = false;
+
+    // Retrieve previous state
+    this.previousState = (contentData.previousState && Object.keys(contentData.previousState).length > 0) ?
+      contentData.previousState :
+      null;
 
     if (parent.hasValidChapters()) {
       const startChapter = this.createColumns(config, contentId, contentData);
@@ -33,13 +38,9 @@ class PageContent extends H5P.EventDispatcher {
     this.content = this.createPageContent();
 
     this.container = document.createElement('div');
-    this.container.classList.add('h5p-interactive-book-main');
+    this.container.classList.add('h5p-interactive-book-main', 'h5p-interactive-book-navigation-hidden');
 
     this.container.appendChild(this.content);
-
-    this.parent.on('coverRemoved', () => {
-      this.handleChapterChange(this.parent.getActiveChapter());
-    });
   }
 
   /**
@@ -106,11 +107,13 @@ class PageContent extends H5P.EventDispatcher {
   /**
    * Create page read checkbox.
    *
+   * @param {boolean} checked True, if box should be checked.
    * @return {HTMLElement} Checkbox for marking a chapter as read.
    */
-  createChapterReadCheckbox() {
+  createChapterReadCheckbox(checked) {
     const checkbox = document.createElement('input');
     checkbox.setAttribute('type', 'checkbox');
+    checkbox.checked = checked;
     checkbox.onclick = (event) => {
       this.parent.setChapterRead(undefined, event.target.checked);
     };
@@ -180,7 +183,10 @@ class PageContent extends H5P.EventDispatcher {
       this.injectSectionId(chapter.sections, columnNode);
 
       if (this.behaviour.progressIndicators && !this.behaviour.progressAuto) {
-        columnNode.appendChild(this.createChapterReadCheckbox());
+        const checked = (this.previousState) ?
+          this.previousState.chapters[chapterIndex].completed :
+          false;
+        columnNode.appendChild(this.createChapterReadCheckbox(checked));
       }
 
       chapter.isInitialized = true;
@@ -197,20 +203,29 @@ class PageContent extends H5P.EventDispatcher {
    */
   createColumns(config, contentId, contentData) {
     contentData = Object.assign({}, contentData);
-    const urlFragments = URLTools.extractFragmentsFromURL(this.parent.validateFragments, this.parent.hashWindow);
+
+    // Restore previous state
+    const previousState = (contentData.previousState && Object.keys(contentData.previousState).length > 0) ?
+      contentData.previousState :
+      null;
+    let urlFragments = URLTools.extractFragmentsFromURL(this.parent.validateFragments, this.parent.hashWindow);
+    if (Object.keys(urlFragments).length === 0 && contentData && previousState && previousState.urlFragments) {
+      urlFragments = previousState.urlFragments;
+    }
+
     const chapters = [];
     this.chapters = chapters;
 
     // Go through all columns and initialise them
     for (let i = 0; i < config.chapters.length; i++) {
       const columnNode = document.createElement('div');
-      this.overrideParameters(i, config.chapters[i]);
 
       const instanceContentData = {
         ...contentData,
         metadata: {
           ...contentData.metadata,
-        }
+        },
+        previousState: (previousState) ? previousState.chapters[i].state : {}
       };
       const newInstance = H5P.newRunnable(config.chapters[i], contentId, undefined, undefined, instanceContentData);
       this.parent.bubbleUp(newInstance, 'resize', this.parent);
@@ -219,8 +234,8 @@ class PageContent extends H5P.EventDispatcher {
         isInitialized: false,
         instance: newInstance,
         title: config.chapters[i].metadata.title,
-        completed: false,
-        tasksLeft: 0,
+        completed: (previousState) ? previousState.chapters[i].completed : false,
+        tasksLeft: (previousState) ? previousState.chapters[i].tasksLeft : 0,
         isSummary: false,
         sections: newInstance.getInstances().map((instance, contentIndex) => ({
           content: config.chapters[i].params.content[contentIndex].content,
@@ -232,14 +247,21 @@ class PageContent extends H5P.EventDispatcher {
       columnNode.classList.add('h5p-interactive-book-chapter');
       columnNode.id = `h5p-interactive-book-chapter-${newInstance.subContentId}`;
 
+      chapter.maxTasks = 0;
+      chapter.tasksLeft = 0;
+
       // Find sections with tasks and tracks them
-      chapter.sections.forEach(section => {
+      chapter.sections.forEach((section, index) => {
         if (H5P.Column.isTask(section.instance)) {
           section.isTask = true;
+          chapter.maxTasks++;
+          chapter.tasksLeft++;
 
           if (this.behaviour.progressIndicators) {
-            section.taskDone = false;
-            chapter.tasksLeft += 1;
+            section.taskDone = (previousState) ? previousState.chapters[i].sections[index].taskDone : false;
+            if (section.taskDone) {
+              chapter.tasksLeft--;
+            }
           }
         }
 
@@ -254,8 +276,6 @@ class PageContent extends H5P.EventDispatcher {
           });
         }
       });
-
-      chapter.maxTasks = chapter.tasksLeft;
 
       // Register both the HTML-element and the H5P-element
       chapters.push(chapter);
@@ -288,11 +308,9 @@ class PageContent extends H5P.EventDispatcher {
       this.columnNodes.push(columnNode);
     }
 
-    // First chapter should be visible, except if the URL says otherwise.
-    let startChapter = 0;
+    // First chapter should be visible, except if the URL of previous state says otherwise.
     if (urlFragments.chapter && urlFragments.h5pbookid == this.parent.contentId) {
       const chapterIndex = this.findChapterIndex(urlFragments.chapter);
-      startChapter = chapterIndex;
       this.parent.setActiveChapter(chapterIndex);
       const headerNumber = urlFragments.headerNumber;
 
@@ -304,9 +322,11 @@ class PageContent extends H5P.EventDispatcher {
           }
         }, 1000);
       }
+
+      return chapterIndex;
     }
 
-    return startChapter;
+    return 0;
   }
 
   /**
@@ -436,8 +456,6 @@ class PageContent extends H5P.EventDispatcher {
 
           this.parent.trigger('resize');
         }, 250);
-
-        this.handleChapterChange(chapterIdNew, chapterIdOld);
       }
       else {
         if (this.parent.cover && !this.parent.cover.hidden) {
@@ -482,123 +500,25 @@ class PageContent extends H5P.EventDispatcher {
   }
 
   /**
-   * Handles chapter change events.
-   *
-   * @param {number} newId
-   * @param {number} oldId
-   */
-  handleChapterChange(newId, oldId) {
-    let i;
-    if (oldId !== undefined) {
-      // Stop any playback
-      for (i = 0; i < this.chapters[oldId].sections.length; i++) {
-        this.pauseMedia(this.chapters[oldId].sections[i].instance);
-      }
-    }
-
-    // Start autoplay
-    if (this.shouldAutoplay[newId]) {
-      for (i = 0; i < this.shouldAutoplay[newId].length; i++) {
-        const shouldAutoplay = this.shouldAutoplay[newId][i];
-        if (this.chapters[newId].sections[shouldAutoplay] !== undefined) {
-          this.chapters[newId].sections[shouldAutoplay].instance.play();
-        }
-      }
-    }
-  }
-
-  /**
-   * Disables autoplay for all interactions not on the first chapter.
-   *
-   * @param {number} chapterId
-   * @param {Object} chapter
-   */
-  overrideParameters(chapterId, chapter) {
-    const currentChapterId = this.parent.getActiveChapter();
-    for (let i = 0; i < chapter.params.content.length; i++) {
-      if (this.hasAutoplay(chapter.params.content[i].content.params, chapterId !== currentChapterId || this.parent.hasCover())) {
-        if (this.shouldAutoplay[chapterId] === undefined) {
-          this.shouldAutoplay[chapterId] = [i];
-        }
-        else {
-          this.shouldAutoplay[chapterId].push(i);
-        }
-      }
-    }
-  }
-
-  /**
-   * Check if interaction has autoplay enabled
-   *
-   * @param {Object} params
-   * @return {boolean}
-   */
-  hasAutoplay(params, prevent) {
-    if (params.autoplay) {
-      if (prevent) {
-        params.autoplay = false;
-      }
-      return true;
-    }
-    else if (params.playback && params.playback.autoplay) {
-      if (prevent) {
-        params.playback.autoplay = false;
-      }
-      return true;
-    }
-    else if (params.media && params.media.params &&
-             params.media.params.playback &&
-             params.media.params.playback.autoplay) {
-      if (prevent) {
-        params.media.params.playback.autoplay = false;
-      }
-      return true;
-    }
-    else if (params.media && params.media.params &&
-             params.media.params.autoplay) {
-      if (prevent) {
-        params.media.params.autoplay = false;
-      }
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Stop the given element's playback if any.
-   *
-   * @param {object} instance
-   */
-  pauseMedia(instance) {
-    try {
-      if (instance.pause !== undefined &&
-          (instance.pause instanceof Function ||
-            typeof instance.pause === 'function')) {
-        instance.pause();
-      }
-      else if (instance.video !== undefined &&
-               instance.video.pause !== undefined &&
-               (instance.video.pause instanceof Function ||
-                 typeof instance.video.pause === 'function')) {
-        instance.video.pause();
-      }
-      else if (instance.stop !== undefined &&
-               (instance.stop instanceof Function ||
-                 typeof instance.stop === 'function')) {
-        instance.stop();
-      }
-    }
-    catch (err) {
-      // Prevent crashing, but tell developers there's something wrong.
-      H5P.error(err);
-    }
-  }
-
-  /**
    * Toggle the navigation menu.
    */
   toggleNavigationMenu() {
-    this.container.classList.toggle('h5p-interactive-book-navigation-open');
+    const self = this;
+    if (!this.sidebarIsOpen) {
+      this.container.classList.remove('h5p-interactive-book-navigation-hidden');
+      setTimeout(function () {
+        self.container.classList.add('h5p-interactive-book-navigation-open');
+      }, 1);
+    }
+    else {
+      // Wait for the tranistion to end before hiding it completely
+      H5P.Transition.onTransitionEnd(H5P.jQuery(this.container), function () {
+        self.container.classList.add('h5p-interactive-book-navigation-hidden');
+      }, 500);
+      this.container.classList.remove('h5p-interactive-book-navigation-open');
+    }
+
+    this.sidebarIsOpen = !this.sidebarIsOpen;
   }
 }
 

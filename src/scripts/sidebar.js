@@ -9,7 +9,7 @@ class SideBar extends H5P.EventDispatcher {
     this.id = contentId;
     this.parent = parent;
     this.behaviour = config.behaviour;
-    this.content = document.createElement('div');
+    this.content = document.createElement('ul');
     this.content.classList.add('navigation-list');
     this.container = this.addSideBar();
     this.l10n = config.l10n;
@@ -273,6 +273,7 @@ class SideBar extends H5P.EventDispatcher {
   toggleChapter(chapterNode, collapse) {
     collapse = (collapse !== undefined) ? collapse : !(chapterNode.classList.contains('h5p-interactive-book-navigation-closed'));
 
+    const childNav = chapterNode.querySelector('.h5p-interactive-book-navigation-sectionlist');
     const arrow = chapterNode.getElementsByClassName('h5p-interactive-book-navigation-chapter-accordion')[0];
     const chapterButton = chapterNode.querySelector('.h5p-interactive-book-navigation-chapter-button');
     chapterButton.setAttribute('aria-expanded', (!collapse).toString());
@@ -282,6 +283,10 @@ class SideBar extends H5P.EventDispatcher {
       if (arrow) {
         arrow.classList.remove('icon-expanded');
         arrow.classList.add('icon-collapsed');
+        if (childNav) {
+          childNav.setAttribute('aria-hidden', true);
+          childNav.setAttribute('tabindex', '-1');
+        }
       }
     }
     else {
@@ -289,6 +294,10 @@ class SideBar extends H5P.EventDispatcher {
       if (arrow) {
         arrow.classList.remove('icon-collapsed');
         arrow.classList.add('icon-expanded');
+        if (childNav) {
+          childNav.removeAttribute('aria-hidden');
+          childNav.removeAttribute('tabindex');
+        }
       }
     }
   }
@@ -423,6 +432,7 @@ class SideBar extends H5P.EventDispatcher {
    */
   getNodesFromChapter(chapter, chapterId) {
     const chapterNode = document.createElement('li');
+    const sectionsDivId = 'h5p-interactive-book-sectionlist-' + chapterId;
     chapterNode.classList.add('h5p-interactive-book-navigation-chapter');
     if (chapter.lockPage === true && chapterId > 0) {
       chapterNode.classList.add('lock-page-navigation');
@@ -481,7 +491,7 @@ class SideBar extends H5P.EventDispatcher {
       }
 
       // Open chapter in main content
-      if (chapterId !== this.focusedChapter && (this.isOpenOnMobile() || !isExpandable || !isExpanded)) {
+      if (this.isOpenOnMobile() || !isExpandable || !isExpanded) {
         const newChapter = {
           h5pbookid: this.parent.contentId,
           chapter: this.chapters[chapterId].id,
@@ -513,7 +523,6 @@ class SideBar extends H5P.EventDispatcher {
 
     const sectionsWrapper = document.createElement('ul');
     sectionsWrapper.classList.add('h5p-interactive-book-navigation-sectionlist');
-    const sectionsDivId = 'h5p-interactive-book-sectionlist-' + chapterId;
     sectionsWrapper.id = sectionsDivId;
 
     const sectionLinks = [];
