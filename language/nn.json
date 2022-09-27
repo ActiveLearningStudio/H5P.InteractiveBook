@@ -12,12 +12,8 @@
           "description": "This text will be the description of your book."
         },
         {
-          "label": "Cover image",
-          "description": "An optional background image for the introduction."
-        },
-        {
-          "label": "Cover image alternative text",
-          "description": "An alternative text for the cover image"
+          "label": "Cover medium",
+          "description": "Optional medium for the introduction."
         }
       ]
     },
@@ -41,6 +37,11 @@
     {
       "label": "Behavioural settings",
       "fields": [
+        {
+          "label": "Base color",
+          "description": "Set the base color that will define the overall color scheme of the book. Please ensure a high enough contrast.",
+          "default": "#1768c4"
+        },
         {
           "label": "Display table of contents as default",
           "description": "When enabled the table of contents is showed when opening the book"
@@ -156,8 +157,8 @@
       "default": "Score"
     },
     {
-      "label": "Label for \"Summary & submit\" button",
-      "default": "Summary & submit"
+      "label": "Label for \"Summary &amp; submit\" button",
+      "default": "Summary &amp; submit"
     },
     {
       "label": "Translation for \"You have not interacted with any pages.\"",

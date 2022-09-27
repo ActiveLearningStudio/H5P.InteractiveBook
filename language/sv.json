@@ -12,12 +12,8 @@
           "description": "Denna text beskriver din bok."
         },
         {
-          "label": "Omslagsbild",
-          "description": "Valfri bakgrundsbild för introduktionen."
-        },
-        {
-          "label": "Omslagsbildens alternativa text",
-          "description": "Alternativ text för omslagsbilden"
+          "label": "Cover medium",
+          "description": "Optional medium for the introduction."
         }
       ]
     },
@@ -41,6 +37,11 @@
     {
       "label": "Beteende-inställningar",
       "fields": [
+        {
+          "label": "Base color",
+          "description": "Set the base color that will define the overall color scheme of the book. Please ensure a high enough contrast.",
+          "default": "#1768c4"
+        },
         {
           "label": "Visa innehållsförteckning som standard",
           "description": "När aktiverat så visas innehållsförteckningen vid öppning av boken"

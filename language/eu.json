@@ -12,12 +12,8 @@
           "description": "Testu hau zure liburuaren deskribapena izango da."
         },
         {
-          "label": "Portadaren irudia",
-          "description": "Portadarentzako atzeko planoko hautazko irudi bat."
-        },
-        {
-          "label": "Portadaren irudiaren ordezko testua",
-          "description": "Portadaren irudiarentzako ordezko testu bat"
+          "label": "Cover medium",
+          "description": "Optional medium for the introduction."
         }
       ]
     },
@@ -39,8 +35,13 @@
       }
     },
     {
-      "label": "Portaeraren ezarpenak",
+      "label": "Portaeren ezarpenak",
       "fields": [
+        {
+          "label": "Base color",
+          "description": "Set the base color that will define the overall color scheme of the book. Please ensure a high enough contrast.",
+          "default": "#1768c4"
+        },
         {
           "label": "Erakutsi eduki-taula modu lehenetsian",
           "description": "Gaituz gero eduki-taula erakutsiko da liburua irekitzean"
@@ -156,8 +157,8 @@
       "default": "Emaitza"
     },
     {
-      "label": "\"Laburpena & bidali\" botoiaren etiketa",
-      "default": "Laburpena & bidali"
+      "label": "\"Laburpena &amp; bidali\" botoiaren etiketa",
+      "default": "Laburpena &amp; bidali"
     },
     {
       "label": "\"You have not interacted with any pages.\" testuaren itzulpena",
