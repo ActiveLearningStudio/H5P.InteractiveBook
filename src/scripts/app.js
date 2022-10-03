@@ -879,6 +879,21 @@ export default class InteractiveBook extends H5P.EventDispatcher {
       self.changeChapter(false);
     };
 
+    this.checkSubContentId = (sectionInstance, machineName, sectionUUID) => {
+      let isSameSection = sectionInstance.subContentId === sectionUUID;
+      try {
+        if (machineName === 'H5P.CoursePresentation') {
+          isSameSection = isSameSection || sectionInstance.slides.flatMap(slide => slide.elements).map(element => element.action).map(action => action.subContentId).includes(sectionUUID);
+        } 
+        else if (machineName === 'H5P.InteractiveVideo') {
+          isSameSection = isSameSection || sectionInstance.interactions.map(inst => inst.getSubcontentId()).includes(sectionUUID);
+        } 
+      } catch (error) {
+        console.error(error);
+      }
+      return isSameSection;
+    };
+
     /**
      * Set a section progress indicator.
      *
@@ -893,9 +908,11 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         }, (chapterId + 1));
 
         const sectionInstance = section.instance;
-        if(sectionInstance.libraryInfo.machineName === 'H5P.StarRating') return;
+        const machineName = sectionInstance.libraryInfo.machineName;
+        if (machineName === 'H5P.StarRating') return;
+
         const dealQuestionnaire = sectionInstance.libraryInfo.machineName === 'H5P.Questionnaire';
-        if ( sectionInstance.subContentId === sectionUUID && !section.taskDone && !dealQuestionnaire) {
+        if (this.checkSubContentId(sectionInstance, machineName, sectionUUID) && !section.taskDone && !dealQuestionnaire) {
           // Check if instance has given an answer
           section.taskDone = sectionInstance.getAnswerGiven ? sectionInstance.getAnswerGiven() : true;
 
