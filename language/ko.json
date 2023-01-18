@@ -12,12 +12,8 @@
           "description": "이 텍스트는 당신의 책에 대한 설명이 될 겁니다."
         },
         {
-          "label": "커버 이미지",
-          "description": "(선택사항)소개의 배경 이미지."
-        },
-        {
-          "label": "표지 이미지 대체 텍스트",
-          "description": "표지 이미지에 대한 대체 텍스트"
+          "label": "Cover medium",
+          "description": "Optional medium for the introduction."
         }
       ]
     },
@@ -39,8 +35,13 @@
       }
     },
     {
-      "label": "행동 설절",
+      "label": "동작 설정",
       "fields": [
+        {
+          "label": "Base color",
+          "description": "Set the base color that will define the overall color scheme of the book. Please ensure a high enough contrast.",
+          "default": "#1768c4"
+        },
         {
           "label": "목차를 기본값으로 표시",
           "description": "활성화했을 때 책을 열 때 목차가 표시됨"
@@ -156,7 +157,7 @@
       "default": "점수"
     },
     {
-      "label": "\"Summary & submit\" (요약 및 제출) 버튼",
+      "label": "\"Summary &amp; submit\" (요약 및 제출) 버튼",
       "default": "요약 및 제출"
     },
     {
