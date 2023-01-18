@@ -797,6 +797,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
      * @param {number} chapterId Number of targetchapter.
      */
     this.setSectionStatusByID = (sectionUUID, chapterId) => {
+      var storedcpChapters = JSON.parse(localStorage.getItem("cpChapters"));
       this.chapters[chapterId].sections.forEach((section, index) => {
         let chapterUserData = null;
         H5P.getUserData(self.contentId, 'state', function(err, previousState) {
@@ -809,6 +810,19 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         if ( sectionInstance.subContentId === sectionUUID && !section.taskDone && !dealQuestionnaire) {
           // Check if instance has given an answer
           section.taskDone = sectionInstance.getAnswerGiven ? sectionInstance.getAnswerGiven() : true;
+          
+          if(sectionInstance.libraryInfo.machineName === 'H5P.CoursePresentation') {
+            console.log(storedcpChapters);
+            const index = storedcpChapters.indexOf(sectionUUID);
+            if (index > -1) { // only splice array when item is found
+              storedcpChapters.splice(index, 1); // 2nd parameter means remove one item only
+              localStorage.setItem("cpChapters", JSON.stringify(storedcpChapters));
+            }
+            
+          }
+          if(storedcpChapters.length === 0) {
+            H5P.jQuery('.h5p-interactive-book-navigation-chapter-button').removeAttr('disabled');
+          }
           
           this.sideBar.setSectionMarker(chapterId, index);
           if (section.taskDone) {

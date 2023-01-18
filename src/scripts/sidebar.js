@@ -15,6 +15,8 @@ class SideBar extends H5P.EventDispatcher {
     this.l10n = config.l10n;
 
     this.chapters = this.findAllChapters(config.chapters);
+    this.cpChapters = [];
+    this.disableChapters();
     this.chapterNodes = this.getChapterNodes();
 
     if (mainTitle) {
@@ -79,6 +81,24 @@ class SideBar extends H5P.EventDispatcher {
     });
   }
 
+  disableChapters () {
+    
+    for(let m=0; m < this.chapters.length; m++) {
+      let chptr = this.chapters[m];
+      let sections = this.chapters[m].sections;
+      for(let k=0;k<sections.length; k++){  console.log('loop sections');
+        if (sections[k].lockslide) {
+
+          let section_id = sections[k].id.split('h5p-interactive-book-section-');
+          this.cpChapters.push(section_id[1]); 
+         continue;
+         
+       }
+      }
+    }
+
+    localStorage.setItem("cpChapters", JSON.stringify(this.cpChapters));
+  }
   setFocusToChapterItem(index, direction = 0) {
     let nextIndex = index + direction;
     if (nextIndex < 0) {
@@ -435,6 +455,10 @@ class SideBar extends H5P.EventDispatcher {
       summaryButton.classList.add('h5p-interactive-book-navigation-chapter-button');
       chapterNode.appendChild(summaryButton);
       if (chapterId > 0 && chapter.lockPage === true) {
+        summaryButton.setAttribute('disabled', 'disabled');
+      }
+      if(this.cpChapters.length > 0) {
+        console.log(this.cpChapters.length);
         summaryButton.setAttribute('disabled', 'disabled');
       }
       return chapterNode;
