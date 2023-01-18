@@ -12,12 +12,8 @@
           "description": "Questo testo descriverà il tuo libro."
         },
         {
-          "label": "Immagine di copertina",
-          "description": "Un'immagine di sfondo facoltativa per l'introduzione."
-        },
-        {
-          "label": "Testo alternativo per l'immagine di copertina",
-          "description": "Un testo alternativo per l'immagine di copertina"
+          "label": "Cover medium",
+          "description": "Optional medium for the introduction."
         }
       ]
     },
@@ -41,6 +37,11 @@
     {
       "label": "Impostazioni di esecuzione",
       "fields": [
+        {
+          "label": "Base color",
+          "description": "Set the base color that will define the overall color scheme of the book. Please ensure a high enough contrast.",
+          "default": "#1768c4"
+        },
         {
           "label": "Mostra la tavola dei contenuti predefiniti",
           "description": "Quando attivo, la tavola dei contenuti viene mostrata all'apertura del libro"
@@ -156,8 +157,8 @@
       "default": "Punteggio"
     },
     {
-      "label": "Etichetta per il pulsante \"Sommario & invio\"",
-      "default": "Sommario & invio"
+      "label": "Etichetta per il pulsante \"Sommario &amp; invio\"",
+      "default": "Sommario &amp; invio"
     },
     {
       "label": "Traduzione per \"Non hai interagito con alcuna pagina\"",

@@ -12,12 +12,8 @@
           "description": "Besedilo opisuje vsebino knjige."
         },
         {
-          "label": "Naslovna slika",
-          "description": "Neobvezna slika za ozadje naslovne strani."
-        },
-        {
-          "label": "Nadomestno besedilo naslovne slike",
-          "description": "Besedilo z opisom naslovne slike za bralnike zaslona"
+          "label": "Medij naslovne strani",
+          "description": "Neobvezen medij za dodaten opis vsebine knjige."
         }
       ]
     },
@@ -41,6 +37,11 @@
     {
       "label": "Nastavitve interakcije",
       "fields": [
+        {
+          "label": "Osnovna barva",
+          "description": "Določitev osnovne barve za celotno barvno shemo knjige. Zagotovite dovolj visok kontrast.",
+          "default": "#006a8e"
+        },
         {
           "label": "Kazalo vsebin prikaži privzeto",
           "description": "Omogočena nastavitev kazalo vsebin prikaže ob odprtju knjige."

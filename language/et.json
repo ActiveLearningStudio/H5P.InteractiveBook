@@ -12,12 +12,8 @@
           "description": "See tekst kirjeldab sinu raamatut."
         },
         {
-          "label": "Tiitellehe pilt",
-          "description": "Valikuline taustapilt tutvustusele."
-        },
-        {
-          "label": "Tiitellehe pildi alternatiivtekst",
-          "description": "Alternatiivne tekst tiitellehe pildile"
+          "label": "Cover medium",
+          "description": "Optional medium for the introduction."
         }
       ]
     },
@@ -42,6 +38,11 @@
       "label": "Käitumisseaded",
       "fields": [
         {
+          "label": "Base color",
+          "description": "Set the base color that will define the overall color scheme of the book. Please ensure a high enough contrast.",
+          "default": "#1768c4"
+        },
+        {
           "label": "Kuva vaikimisi sisukorda",
           "description": "Kui on lubatud, siis raamatu avamisel näidatakse sisukorda"
         },
@@ -54,8 +55,8 @@
           "description": "Kui on lubatud, siis ülesanneteta lehekülg loetakse vaatamisel läbituks, ülesannetega lehekülg peale kõigi ülesannete täitmist. Kui keelatud, siis on iga lehe all nupp, mida kasutaja peab lehe läbituks märkimiseks vajutama."
         },
         {
-          "label": "Display summary",
-          "description": "When enabled the user can see a summary and submit the progress/answers"
+          "label": "Kuva kokkuvõtet",
+          "description": "Kui lubatud, siis kasutaja näeb kokkuvõtet ning saab oma tulemused edastada/vaadata"
         }
       ]
     },
@@ -127,61 +128,61 @@
     },
     {
       "label": "Summary header",
-      "default": "Summary"
+      "default": "Kokkuvõte"
     },
     {
       "label": "Translation for \"All interactions\"",
-      "default": "All interactions"
+      "default": "Kõik harjutused"
     },
     {
       "label": "Translation for \"Unanswered interactions\"",
-      "default": "Unanswered interactions"
+      "default": "Vastamata harjutused"
     },
     {
-      "label": "Score",
+      "label": "Tulemus",
       "description": "\"@score\" will be replaced with current score, and \"@maxscore\" will be replaced with max achievable score",
       "default": "@score / @maxscore"
     },
     {
-      "label": "Per page interactions completion",
+      "label": "Harjutuste edenemine lehe kohta",
       "description": "\"@left\" will be replaced with remaining interactions, and \"@max\" will be replaced with total number of interactions on the page",
-      "default": "@left of @max interactions completed"
+      "default": "@left / @max harjutusest täidetud"
     },
     {
       "label": "Translation for \"No interactions\"",
-      "default": "No interactions"
+      "default": "Harjutused puuduvad"
     },
     {
       "label": "Translation for \"Score\"",
-      "default": "Score"
+      "default": "Tulemus"
     },
     {
-      "label": "Label for \"Summary & submit\" button",
-      "default": "Summary & submit"
+      "label": "Label for \"Summary &amp; submit\" button",
+      "default": "Kokkuvõte &amp; vastuste esitamine"
     },
     {
       "label": "Translation for \"You have not interacted with any pages.\"",
-      "default": "You have not interacted with any pages."
+      "default": "Sa ei ole veel lehtesid vaadanud."
     },
     {
       "label": "Translation for \"You have to interact with at least one page before you can see the summary.\"",
-      "default": "You have to interact with at least one page before you can see the summary."
+      "default": "Pead vähemalt ühte lehte vaatama enne kui soovid kokkuvõtte lehte vaadata."
     },
     {
       "label": "Translation for \"Your answers are submitted for review!\"",
-      "default": "Your answers are submitted for review!"
+      "default": "Vastused on edastatud ülevaatamiseks!"
     },
     {
       "label": "Summary progress label",
-      "default": "Book progress"
+      "default": "Edenemine"
     },
     {
       "label": "Interactions progress label",
-      "default": "Interactions progress"
+      "default": "Harjutuste edenemine"
     },
     {
       "label": "Total score label",
-      "default": "Total score"
+      "default": "Tulemused"
     },
     {
       "label": "Puudega inimest toetavad tekstid",

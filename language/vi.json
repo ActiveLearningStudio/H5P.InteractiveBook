@@ -1,112 +1,112 @@
 {
   "semantics": [
     {
-      "label": "Enable book cover",
-      "description": "A cover that shows info regarding the book before access"
+      "label": "Bật bìa sách",
+      "description": "Bìa hiển thị thông tin về cuốn sách trước khi truy cập"
     },
     {
-      "label": "Cover Page",
+      "label": "Trang bìa",
       "fields": [
         {
-          "label": "Cover description",
-          "description": "This text will be the description of your book."
+          "label": "Mô tả bìa",
+          "description": "Văn bản này sẽ là mô tả của cuốn sách của bạn."
         },
         {
-          "label": "Cover medium",
-          "description": "Optional medium for the introduction."
+          "label": "Che trung bình",
+          "description": "Phương tiện tùy chọn cho phần giới thiệu."
         }
       ]
     },
     {
-      "label": "Pages",
-      "entity": "Page",
+      "label": "Trang",
+      "entity": "Trang",
       "widgets": [
         {
-          "label": "Default"
+          "label": "Mặc định"
         }
       ],
       "field": {
-        "label": "Item",
+        "label": "Mục",
         "fields": [
           {
-            "label": "Page"
+            "label": "Trang"
           }
         ]
       }
     },
     {
-      "label": "Behavioural settings",
+      "label": "Cài đặt hành vi",
       "fields": [
         {
-          "label": "Base color",
-          "description": "Set the base color that will define the overall color scheme of the book. Please ensure a high enough contrast.",
+          "label": "Màu cơ bản",
+          "description": "Đặt màu cơ bản sẽ xác định bảng màu tổng thể của cuốn sách. Vui lòng đảm bảo độ tương phản đủ cao.",
           "default": "#1768c4"
         },
         {
-          "label": "Display table of contents as default",
-          "description": "When enabled the table of contents is showed when opening the book"
+          "label": "Hiển thị mục lục theo mặc định",
+          "description": "Khi được bật, mục lục sẽ hiển thị khi mở sách"
         },
         {
-          "label": "Display Progress Indicators",
-          "description": "When enabled there will be indicators per page showing the user if he is done with the page or not."
+          "label": "Hiển thị các chỉ báo tiến độ",
+          "description": "Khi được kích hoạt, sẽ có các chỉ báo trên mỗi trang hiển thị cho người dùng xem anh ta đã hoàn tất trang đó hay chưa."
         },
         {
-          "label": "Enable automatic progress",
-          "description": "If enabled a page without tasks is considered done when viewed. A page with tasks when all tasks are done. If disabled there will be a button at the bottom of every page for the user to click when done with the page."
+          "label": "Bật tiến trình tự động",
+          "description": "Nếu được bật, một trang không có nhiệm vụ được coi là hoàn thành khi xem. Một trang với các nhiệm vụ khi tất cả các nhiệm vụ được hoàn thành. Nếu bị vô hiệu hóa, sẽ có một nút ở cuối mỗi trang để người dùng nhấp vào khi hoàn tất trang."
         },
         {
-          "label": "Vis sammendrag",
-          "description": "When enabled the user can see a summary and submit the progress/answers"
+          "label": "Hiển thị tóm tắt",
+          "description": "Khi được bật, người dùng có thể xem tóm tắt và gửi tiến trình / câu trả lời"
         }
       ]
     },
     {
-      "label": "Translation for \"Read\"",
-      "default": "Read"
+      "label": "Bản dịch cho \"Đọc\"",
+      "default": "Đọc"
     },
     {
-      "label": "Translation for \"Display 'Table of contents'\"",
-      "default": "Display 'Table of contents'"
+      "label": "Bản dịch cho \"Hiển thị 'Mục lục'\"",
+      "default": "Hiển thị 'Mục lục'"
     },
     {
-      "label": "Translation for \"Hide 'Table of contents'\"",
-      "default": "Hide 'Table of contents'"
+      "label": "Bản dịch cho \"Ẩn 'Mục lục'\"",
+      "default": "Ẩn 'Mục lục'"
     },
     {
-      "label": "Translation for \"Next page\"",
-      "default": "Neste side"
+      "label": "Bản dịch cho \"Trang tiếp theo\"",
+      "default": "Trang tiếp theo"
     },
     {
-      "label": "Translation for \"Previous page\"",
-      "default": "Forrige side"
+      "label": "Bản dịch cho \"Trang trước\"",
+      "default": "Trang trước"
     },
     {
-      "label": "Translation for \"Page completed!\"",
-      "default": "Kapittel ferdig!"
+      "label": "Bản dịch cho \"Trang đã hoàn thành!\"",
+      "default": "Trang đã hoàn thành!"
     },
     {
-      "label": "Translation for \"@pages of @total completed\" (@pages and @total will be replaced by actual values)",
-      "default": "@pages of @total completed"
+      "label": "Bản dịch cho \"@pages of @total đã hoàn thành\" (@pages và @total sẽ được thay thế bằng các giá trị thực tế)",
+      "default": "@pages của @total đã hoàn thành"
     },
     {
-      "label": "Translation for \"Incomplete page\"",
-      "default": "Ikke fullført kapittel"
+      "label": "Bản dịch cho \"Trang chưa hoàn chỉnh\"",
+      "default": "Trang chưa hoàn chỉnh"
     },
     {
-      "label": "Translation for \"Navigate to the top\"",
-      "default": "Gå til toppen"
+      "label": "Bản dịch cho \"Điều hướng lên đầu\"",
+      "default": "Điều hướng lên đầu"
     },
     {
-      "label": "Translation for \"I have finished this page\"",
-      "default": "Jeg er ferdig med siden"
+      "label": "Bản dịch cho \"Tôi đã hoàn thành trang này\"",
+      "default": "Tôi đã hoàn thành trang này"
     },
     {
       "label": "Fullscreen button label",
-      "default": "Fullskjerm"
+      "default": "Fullscreen"
     },
     {
       "label": "Exit fullscreen button label",
-      "default": "Lukk fullskjerm"
+      "default": "Exit fullscreen"
     },
     {
       "label": "Page progress in book",
@@ -116,11 +116,11 @@
     {
       "label": "Interaction progress",
       "description": "\"@count\" will be replaced by interaction count, and \"@total\" with the total number of interactions",
-      "default": "@count av @total oppgaver"
+      "default": "@count of @total interactions"
     },
     {
-      "label": "Oversettelse for \"Levér rapport\"",
-      "default": "Levér rapport"
+      "label": "Translation for \"Submit report\"",
+      "default": "Submit Report"
     },
     {
       "label": "Label for \"restart\" button",

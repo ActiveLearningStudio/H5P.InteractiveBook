@@ -12,12 +12,8 @@
           "description": "Tämä teksti näkyy pienemmässä koossa pääotsikon alapuolella."
         },
         {
-          "label": "Kansikuva",
-          "description": "Tämä kuva näkyy kansisivulla (valinnainen)"
-        },
-        {
-          "label": "Kansikuvan vaihtoehtoinen kuvaus",
-          "description": "Tätä tekstiä käyttävät ruudunlukijasovellukset. Se näkyy myös, jos kansikuva ei lataudu."
+          "label": "Cover medium",
+          "description": "Optional medium for the introduction."
         }
       ]
     },
@@ -41,6 +37,11 @@
     {
       "label": "Käyttäytymisasetukset",
       "fields": [
+        {
+          "label": "Base color",
+          "description": "Set the base color that will define the overall color scheme of the book. Please ensure a high enough contrast.",
+          "default": "#1768c4"
+        },
         {
           "label": "Sisällysluettelon näkyminen oletuksena",
           "description": "Näyttää sisällysluettelon kirjan avaamisen yhteydessä."
@@ -156,8 +157,8 @@
       "default": "Tulos"
     },
     {
-      "label": "\"Yhteenveto & lähetys\" -painikkeen teksti",
-      "default": "Yhteenveto & lähetys"
+      "label": "\"Yhteenveto &amp; lähetys\" -painikkeen teksti",
+      "default": "Yhteenveto &amp; lähetys"
     },
     {
       "label": "Käännös tekstille \"Et ole tehnyt yhtään tehtävää.\"",

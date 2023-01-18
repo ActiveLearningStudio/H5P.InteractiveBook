@@ -8,16 +8,12 @@
       "label": "Titelseite",
       "fields": [
         {
-          "label": "Untertitel",
-          "description": "Dieser Text wird in kleinerer Schrift unter dem eigentlichen Titel angezeigt."
+          "label": "Beschreibung",
+          "description": "Dieser Text wird zur Beschreibung des Buchs unter dem eigentlichen Titel angezeigt."
         },
         {
-          "label": "Titelbild",
-          "description": "Dieses Bild wird auf der Titelseite angezeigt (optional)."
-        },
-        {
-          "label": "Alternativtext des Titelbildes",
-          "description": "Dieser Text wird von Vorlesewerkzeugen verwendet (Barrierefreiheit)"
+          "label": "Cover medium",
+          "description": "Optional medium for the introduction."
         }
       ]
     },
@@ -41,6 +37,11 @@
     {
       "label": "Verhaltenseinstellungen",
       "fields": [
+        {
+          "label": "Base color",
+          "description": "Set the base color that will define the overall color scheme of the book. Please ensure a high enough contrast.",
+          "default": "#1768c4"
+        },
         {
           "label": "Standardmäßig Inhaltsverzeichnis anzeigen",
           "description": "Wenn gewählt, wird das Inhaltsverzeichnis beim Öffnen des Buchs angezeigt."

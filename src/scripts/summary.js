@@ -1,4 +1,5 @@
 import 'jquery-circle-progress';
+import Colors from './colors';
 
 class Summary extends H5P.EventDispatcher {
 
@@ -23,6 +24,7 @@ class Summary extends H5P.EventDispatcher {
     this.filterActionAll = 'all';
     this.filterActionUnanswered = 'unanswered';
     this.bookCompleted = false;
+    this.tempState = JSON.stringify(this.parent.previousState && this.parent.previousState.chapters ? this.parent.previousState.chapters : this.getChapterStats());
 
     parent.on('bookCompleted', event => this.setBookComplete(event.data.completed));
     parent.on('toggleMenu', () => {
@@ -81,10 +83,9 @@ class Summary extends H5P.EventDispatcher {
    * @param {boolean} complete
    */
   setBookComplete(complete) {
-
-    if (!this.parent.mainWrapper) return;
-
-    let summaryFooter = this.parent.mainWrapper[0].querySelector('.h5p-interactive-book-summary-footer');
+    let summaryFooter = this.parent.mainWrapper ?
+      this.parent.mainWrapper[0].querySelector('.h5p-interactive-book-summary-footer') :
+      null;
     if ( !summaryFooter && this.parent.isSmallSurface()) {
       summaryFooter = document.createElement("div");
       summaryFooter.classList.add('h5p-interactive-book-summary-footer');
@@ -199,13 +200,14 @@ class Summary extends H5P.EventDispatcher {
    * @return {HTMLDivElement}
    */
   createCircle(progress) {
+    const color = Colors.computeContrastColor(Colors.colorBase, Colors.DEFAULT_COLOR_BG);
     const circleProgress = document.createElement("div");
     circleProgress.classList.add('h5p-interactive-book-summary-progress-circle');
     circleProgress.setAttribute('data-value', progress);
     circleProgress.setAttribute('data-start-angle', -Math.PI / 3);
     circleProgress.setAttribute('data-thickness', 13);
-    circleProgress.setAttribute('data-empty-fill', "rgba(45, 122, 210, .1)");
-    circleProgress.setAttribute('data-fill', JSON.stringify({color: '#2d7ad2'}));
+    circleProgress.setAttribute('data-empty-fill', `rgba(${color.rgb().array().join(', ')}, .1)`);
+    circleProgress.setAttribute('data-fill', JSON.stringify({color: color.hex()}));
 
     return circleProgress;
   }
@@ -360,8 +362,9 @@ class Summary extends H5P.EventDispatcher {
   addActionButtons() {
     const wrapper = document.createElement("div");
     wrapper.classList.add('h5p-interactive-book-summary-buttons');
+    this.checkTheAnswerIsUpdated();
 
-    if (H5PIntegration.reportingIsEnabled) {
+    if (this.parent.isSubmitButtonEnabled && this.parent.isAnswerUpdated) {
       const submitButton = this.addButton('icon-paper-pencil', this.l10n.submitReport);
       submitButton.classList.add('h5p-interactive-book-summary-submit');
       submitButton.onclick = () => {
@@ -386,10 +389,10 @@ class Summary extends H5P.EventDispatcher {
           response: JSON.stringify(data),
         };
         this.parent.trigger(xAPIEvent);
-        
+
         this.trigger('submitted');
-        
-      
+
+
         var max_score = this.parent.getMaxScore();
         var raw_score = this.parent.getScore();
 
@@ -408,7 +411,11 @@ class Summary extends H5P.EventDispatcher {
         this.triggerSkipped();
         //this.triggerSkippedQuestioneer();
         wrapper.classList.add('submitted');
-        
+        const submitText = wrapper.querySelector('.answers-submitted');
+        submitText.focus();
+        this.tempState = JSON.stringify(this.getChapterStats());
+        this.parent.isAnswerUpdated = false;
+
         // reset user data states
         let contentId = this.parent.contentId;
         H5P.getUserData(contentId, 'state', function(err, previousState) {
@@ -424,7 +431,7 @@ class Summary extends H5P.EventDispatcher {
             H5P.setUserData(contentId, 'state', chapterUserData, {subContentId: chapterIndex});
           }, chapterIndex);
         });
-        
+
       };
       wrapper.appendChild(submitButton);
     }
@@ -443,12 +450,12 @@ class Summary extends H5P.EventDispatcher {
    * Fetch unanswered statements
    */
   triggerSkipped() {
-    
+
     for (const chapter of this.chapters) {
       var sections = (chapter.sections.filter(section => section.isTask));
-      
+
       for (const section of sections) {
-        
+
         if(section.content.metadata.contentType == "Course Presentation"){
           var taskDone = this.parseCPContent(section);
           if(!taskDone) {
@@ -468,7 +475,7 @@ class Summary extends H5P.EventDispatcher {
         if(section.content.metadata.contentType == "Questionnaire"){
           var qTaskDone = this.parseQContent(section);
           if(!qTaskDone) {
-            
+
             this.customTriggerStatement(section);
           }
           continue;
@@ -498,7 +505,7 @@ class Summary extends H5P.EventDispatcher {
 
   /**
    * To Parse Course presentation content
-   * @param {*} section 
+   * @param {*} section
    */
   parseCPContent(section) {
     for (const slide of section.instance.slidesWithSolutions) {
@@ -514,22 +521,22 @@ class Summary extends H5P.EventDispatcher {
 
   /**
    * To Parse Questionnaire content
-   * @param {*} section 
+   * @param {*} section
    */
   parseQContent(section) {
     for (const elem of section.instance.state.questionnaireElements) {
-      
+
         if(elem.answered){
           console.log(elem.answered);
           return true;
         }
-      
+
     }
     return false;
   }
   /**
    * To Parse Interactive Video content
-   * @param {*} section 
+   * @param {*} section
    */
   parseIVContent(section) {
     for (const iv_interaction of section.instance.interactions) {
@@ -541,18 +548,18 @@ class Summary extends H5P.EventDispatcher {
     return false;
   }
 
-  
+
 
   /**
    * To trigger the XAPI statement
-   * @param {*} section 
+   * @param {*} section
    */
   skippedStatement(section) {
     var api_data = section.instance.getXAPIData();
     console.log(api_data);
     api_data.statement.context.platform = "Google Classroom";
     var rwa = this.createXAPIEventTemplate("answered");
-    
+
     rwa.data.statement.verb.id = "http://id.tincanapi.com/verb/skipped";
     rwa.data.statement.verb.display["en-US"] = "skipped";
     rwa.data.statement.object = api_data.statement.object;
@@ -587,6 +594,8 @@ class Summary extends H5P.EventDispatcher {
 
     const text = document.createElement("p");
     text.innerHTML = this.l10n.yourAnswersAreSubmittedForReview;
+    text.tabIndex = -1;
+    text.classList.add('answers-submitted');
     submittedContainer.appendChild(text);
 
     let lockedPage = this.chaptersWithConfig.find(chapter => chapter.hasOwnProperty('lockPage') && chapter.lockPage === true ? true : false);
@@ -894,11 +903,29 @@ class Summary extends H5P.EventDispatcher {
     this.wrapper = document.createElement('div');
     this.wrapper.classList.add('h5p-interactive-book-summary-page');
 
-    if ( this.chapters.filter(chapter => chapter.isInitialized).length > 0) {
-      this.addProgressIndicators();
-      this.addActionButtons();
-      this.addSummaryOverview();
-      this.addScoreBar();
+    if (
+      this.chapters.filter(chapter => chapter.isInitialized).length > 0 ||
+      this.chapters.some(chapter => {
+        return chapter.sections.some(section => section.taskDone);
+      })
+    ) {
+      // Only initilize if it's actually going to be shown
+      if (
+        this.parent.pageContent && this.parent.chapters[this.parent.getChapterId(this.parent.pageContent.targetPage.chapter)].isSummary ||
+        this.parent.chapters.length === 0
+      ) {
+        // Initialize all the things!
+        if (this.parent.chapters.length > 0) {
+          // Initializing from previous state, pageContent not set yet
+          for (const chapterId in this.chapters) {
+            this.parent.pageContent.initializeChapter(chapterId);
+          }
+        }
+        this.addProgressIndicators();
+        this.addActionButtons();
+        this.addSummaryOverview();
+        this.addScoreBar();
+      }
     }
     else {
       this.noChapterInteractions();
@@ -909,6 +936,73 @@ class Summary extends H5P.EventDispatcher {
     container.append(this.wrapper);
 
     return container;
+  }
+
+  /**
+   * Verify that submit button should be enabled
+   * Compare previous and current states of children to notice changes
+   */
+  checkTheAnswerIsUpdated() {
+    const chapters = this.getChapterStats();
+    const previousState = JSON.parse(this.tempState);
+    for (const index of chapters.keys()) {
+      let previousStateInstance = previousState[index].state.instances;
+      let currentStateInstance = chapters[index].state.instances;
+      let currentTaskDone = chapters[index].sections;
+      for (const internalIndex of previousStateInstance.keys()) {
+        // Skip null and undefined
+        if (previousStateInstance[internalIndex] === null || previousStateInstance[internalIndex] === undefined) {
+          continue;
+        }
+
+        // Compare array type data
+        if (Array.isArray(previousStateInstance[internalIndex]) &&
+          !this.compareStates(previousStateInstance[internalIndex], currentStateInstance[internalIndex]) &&
+          currentTaskDone[internalIndex].taskDone) {
+          this.parent.isAnswerUpdated = true;
+        }
+        // Compare object type data
+        if (typeof (previousStateInstance[internalIndex]) === 'object' &&
+          !Array.isArray(previousStateInstance[internalIndex]) &&
+          JSON.stringify(previousStateInstance[internalIndex]) !== JSON.stringify(currentStateInstance[internalIndex]) &&
+          currentTaskDone[internalIndex].taskDone) {
+          this.parent.isAnswerUpdated = true;
+        }
+      }
+
+      // Break the entire loop even if one content type has updated value
+      if (this.parent.isAnswerUpdated) {
+        break;
+      }
+    }
+  }
+
+  /**
+   * Get current state of children
+   *
+   * @return {object} of chapters with sections and state
+   */
+  getChapterStats() {
+    return this.chapters
+      .filter(chapter => !chapter.isSummary)
+      .map(chapter => ({
+        sections: chapter.sections.map(section => ({taskDone: section.taskDone})),
+        state: chapter.instance.getCurrentState()
+      }));
+  }
+
+  /**
+   * Add the summary page to a container
+   *
+   * @param {Array} previousstate
+   * @param {Array} currentState
+   * @return {boolean}
+   */
+  compareStates(previousstate, currentState) {
+    return Array.isArray(previousstate) &&
+        Array.isArray(currentState) &&
+        previousstate.length === currentState.length &&
+        previousstate.every((val, index) => val === currentState[index] || currentState[index] === "");
   }
 }
 
