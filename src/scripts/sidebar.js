@@ -82,13 +82,13 @@ class SideBar extends H5P.EventDispatcher {
   }
 
   disableChapters () {
-    
+   
     for(let m=0; m < this.chapters.length; m++) {
       let chptr = this.chapters[m];
       let sections = this.chapters[m].sections;
-      for(let k=0;k<sections.length; k++){  console.log('loop sections');
+      for(let k=0;k<sections.length; k++){  
         if (sections[k].lockslide) {
-
+         
           let section_id = sections[k].id.split('h5p-interactive-book-section-');
           this.cpChapters.push(section_id[1]); 
          continue;
@@ -222,6 +222,7 @@ class SideBar extends H5P.EventDispatcher {
       const content = sections[j].content;
 
       let title = '';
+      let lockslide = false;
       switch (content.library.split(' ')[0]) {
         case 'H5P.Link':
           if (content.params.title) {
@@ -234,10 +235,15 @@ class SideBar extends H5P.EventDispatcher {
         default:
           title = content.metadata.title;
       }
-
+      if(content.metadata.contentType === 'Course Presentation') {
+        lockslide = content.params.override.lockslide
+      }
+      
       sectionsData.push({
         title: title,
-        id: content.subContentId ? `h5p-interactive-book-section-${content.subContentId}` : undefined
+        id: content.subContentId ? `h5p-interactive-book-section-${content.subContentId}` : undefined,
+        library: content.metadata.contentType,
+        lockslide: lockslide
       });
     }
 
@@ -468,7 +474,7 @@ class SideBar extends H5P.EventDispatcher {
         summaryButton.setAttribute('disabled', 'disabled');
       }
       if(this.cpChapters.length > 0) {
-        console.log(this.cpChapters.length);
+        
         summaryButton.setAttribute('disabled', 'disabled');
       }
       return chapterNode;

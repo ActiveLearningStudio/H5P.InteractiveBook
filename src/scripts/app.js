@@ -220,7 +220,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
         });
 
         // Force reset activity start time
-        this.setActivityStarted(true);
+        this.setAcpterStivityStarted(true);
         this.pageContent.resetChapters();
         this.sideBar.resetIndicators();
 
@@ -828,24 +828,60 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     }
 
     H5P.externalDispatcher.on('xAPI', function (event) {
-
+      
       const actionVerbs = [
         'answered',
         'completed',
         'interacted',
         'attempted',
+        'consume',
       ];
+
+      
+
       const isActionVerb = actionVerbs.indexOf(event.getVerb()) > -1;
+
+      if(!isActionVerb) {
+        //self.unableSummaryPage(this.subContentId , self.activeChapter);
+      }
       // Some content types may send xAPI events when they are initialized,
       // so check that chapter is initialized before setting any section change
       const isInitialized = self.chapters.length;
-
-      if (self !== this && isActionVerb && isInitialized) {
+      
+      if (self !== this && isActionVerb && isInitialized) { 
         self.setSectionStatusByID(this.subContentId || this.contentData.subContentId, self.activeChapter);
         self.manageSate();
       }
     });
 
+    this.unableSummaryPage = (subContentId, chapterId) => {
+      
+      var storedcpChapters = JSON.parse(localStorage.getItem("cpChapters"));
+      
+      if(typeof this.chapters[chapterId] !== "undefined") {
+        this.chapters[chapterId].sections.forEach((section, index) => {
+          const sectionInstance = section.instance;
+          const machineName = sectionInstance.libraryInfo.machineName;
+
+          if(machineName === 'H5P.CoursePresentation') {
+            
+            /*
+            const index = storedcpChapters.indexOf(sectionUUID);
+            
+            if (index > -1) { // only splice array when item is found
+              storedcpChapters.splice(index, 1); // 2nd parameter means remove one item only
+              localStorage.setItem("cpChapters", JSON.stringify(storedcpChapters));
+              
+            }*/
+            
+          }
+          if(storedcpChapters.length === 0) {
+            H5P.jQuery('.h5p-interactive-book-navigation-chapter-button').removeAttr('disabled');
+          }
+        });
+      }
+      
+    };
     /**
      * Redirect chapter.
      *
@@ -882,7 +918,7 @@ export default class InteractiveBook extends H5P.EventDispatcher {
     this.checkSubContentId = (sectionInstance, machineName, sectionUUID) => {
       let isSameSection = sectionInstance.subContentId === sectionUUID;
       try {
-        if (machineName === 'H5P.CoursePresentation') {
+        if (machineName === 'H5P.CoursePresentation') { 
           isSameSection = isSameSection || sectionInstance.slides.flatMap(slide => slide.elements).map(element => element.action).map(action => action.subContentId).includes(sectionUUID);
         } 
         else if (machineName === 'H5P.InteractiveVideo') {
@@ -900,32 +936,38 @@ export default class InteractiveBook extends H5P.EventDispatcher {
      * @param {string} sectionUUID UUID of target section.
      * @param {number} chapterId Number of targetchapter.
      */
-    this.setSectionStatusByID = (sectionUUID, chapterId) => {
+    this.setSectionStatusByID = (sectionUUID, chapterId) => {  
       var storedcpChapters = JSON.parse(localStorage.getItem("cpChapters"));
-      this.chapters[chapterId].sections.forEach((section, index) => {
+      
+      this.chapters[chapterId].sections.forEach((section, index) => { 
         let chapterUserData = null;
         H5P.getUserData(self.contentId, 'state', function(err, previousState) {
           chapterUserData = previousState;
         }, (chapterId + 1));
-
+        
         const sectionInstance = section.instance;
         const machineName = sectionInstance.libraryInfo.machineName;
         if (machineName === 'H5P.StarRating') return;
 
         const dealQuestionnaire = sectionInstance.libraryInfo.machineName === 'H5P.Questionnaire';
+        
+        
         if (this.checkSubContentId(sectionInstance, machineName, sectionUUID) && !section.taskDone && !dealQuestionnaire) {
           // Check if instance has given an answer
           section.taskDone = sectionInstance.getAnswerGiven ? sectionInstance.getAnswerGiven() : true;
           
           if(sectionInstance.libraryInfo.machineName === 'H5P.CoursePresentation') {
-            console.log(storedcpChapters);
-            const index = storedcpChapters.indexOf(sectionUUID);
+            
+            const index = storedcpChapters.indexOf(section.content.subContentId);
+           
             if (index > -1) { // only splice array when item is found
               storedcpChapters.splice(index, 1); // 2nd parameter means remove one item only
               localStorage.setItem("cpChapters", JSON.stringify(storedcpChapters));
+              
             }
             
           }
+          
           if(storedcpChapters.length === 0) {
             H5P.jQuery('.h5p-interactive-book-navigation-chapter-button').removeAttr('disabled');
           }
